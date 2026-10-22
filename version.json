@@ -1,0 +1,11 @@
+{
+  "versionCode": 3,
+  "androidVersionCode": 6,
+  "versionName": "9.0.82-OTA",
+  "updatedAt": "2026-10-22T15:52:00+07:00",
+  "resetFalseRevokedVersion": 3,
+  "forceSnapshotReload": true,
+  "androidApkUrl": "https://trung1560x2.github.io/NotiStarCloud-iOS/NotiStarCloud_OneUI7_AutoDrive.apk",
+  "iosWebAppUrl": "https://trung1560x2.github.io/NotiStarCloud-iOS/",
+  "changelog": "• Tự động cập nhật qua mạng (OTA Auto-Update) cho cả iOS và Android (không cần cắm cáp hay tải lại thủ công)\n• Sửa triệt để lỗi báo 'Đã thu hồi' nhầm trên Android & dọn sạch 125 tin báo sai trên Google Drive\n• Hiển thị đầy đủ 43+ hình ảnh đính kèm (Telegram, Zalo, Shopee, Photos) trong tab 🖼️ Kho Ảnh trên iPhone\n• Bổ sung màn hình ⚙️ Quản lý (Chặn/Bật thông báo từng App, Thêm ảnh, Bắt thông báo trực tiếp trên iOS, Gộp trùng lặp)"
+}

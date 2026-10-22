@@ -1,139 +1,79 @@
 /**
- * NotiStar Cloud iOS — Service Worker (sw.js)
- * Hỗ trợ chạy Offline 100% trên iPhone/iPad (Safari "Thêm vào Màn hình chính"),
- * tự động lưu đệm giao diện OneUI 7 / iOS 18 và bản sao lưu Google Drive gần nhất.
+ * NotiStar Cloud (OneUI 7 iOS Edition) - Network-First OTA Service Worker
+ * Luôn ưu tiên lấy bản cập nhật mới nhất qua mạng (OTA), chỉ dùng Cache khi mất mạng (Offline).
  */
 
-const CACHE_SHELL = 'notistar-ios-shell-v2';
-const CACHE_API = 'notistar-ios-api-v2';
-
-const SHELL_ASSETS = [
-  './',
-  './index.html',
-  './manifest.json',
-  './sw.js'
+const CACHE_NAME = "notistar-ios-ota-v3";
+const APP_SHELL_ASSETS = [
+  "./",
+  "./index.html",
+  "./manifest.json",
+  "./icon.png",
+  "./version.json"
 ];
 
-self.addEventListener('install', (event) => {
+self.addEventListener("install", (event) => {
   self.skipWaiting();
   event.waitUntil(
-    caches.open(CACHE_SHELL).then((cache) => {
-      return cache.addAll(SHELL_ASSETS).catch(() => {
-        // Bỏ qua lỗi từng file nếu mở qua file:// hoặc Google Apps Script HtmlService
-      });
+    caches.open(CACHE_NAME).then((cache) => {
+      return cache.addAll(APP_SHELL_ASSETS).catch(() => {});
     })
   );
 });
 
-self.addEventListener('activate', (event) => {
+self.addEventListener("activate", (event) => {
   event.waitUntil(
-    caches.keys().then((keys) => {
-      return Promise.all(
+    caches.keys().then((keys) =>
+      Promise.all(
         keys.map((key) => {
-          if (key !== CACHE_SHELL && key !== CACHE_API) {
+          if (key !== CACHE_NAME) {
             return caches.delete(key);
           }
         })
-      );
-    }).then(() => self.clients.claim())
+      )
+    ).then(() => self.clients.claim())
   );
 });
 
-self.addEventListener('fetch', (event) => {
+self.addEventListener("fetch", (event) => {
   const req = event.request;
-  if (req.method !== 'GET') {
-    return;
-  }
+  if (req.method !== "GET") return;
 
   const url = new URL(req.url);
 
-  // 1. Yêu cầu API đồng bộ Google Apps Script / Google Drive -> Network First, Fallback Cache
+  // Bypass Google Apps Script / Google Drive API calls (always live network)
   if (
-    url.hostname.includes('script.google.com') ||
-    url.hostname.includes('script.googleusercontent.com') ||
-    url.hostname.includes('googleapis.com')
+    url.hostname.includes("script.google.com") ||
+    url.hostname.includes("googleusercontent.com") ||
+    url.hostname.includes("googleapis.com")
   ) {
-    event.respondWith(
-      fetch(req)
-        .then((networkRes) => {
-          if (networkRes && networkRes.ok) {
-            const clone = networkRes.clone();
-            caches.open(CACHE_API).then((cache) => cache.put(req, clone));
-          }
-          return networkRes;
-        })
-        .catch(() => {
-          return caches.open(CACHE_API).then((cache) => cache.match(req));
-        })
-    );
     return;
   }
 
-  // 2. App Shell (HTML, Manifest, Icons) -> Stale-While-Revalidate (Mở tức thì trên iPhone cả khi mất mạng)
+  // Network-First strategy for instant OTA updates!
   event.respondWith(
-    caches.match(req, { ignoreSearch: true }).then((cachedRes) => {
-      const fetchPromise = fetch(req)
-        .then((networkRes) => {
-          if (networkRes && networkRes.status === 200) {
-            const clone = networkRes.clone();
-            caches.open(CACHE_SHELL).then((cache) => cache.put(req, clone));
-          }
-          return networkRes;
-        })
-        .catch(() => cachedRes);
-
-      return cachedRes || fetchPromise;
-    })
-  );
-});
-
-// Hỗ trợ thông báo đẩy Web Push trên iOS 16.4+ / iOS 18 PWA
-self.addEventListener('push', (event) => {
-  let payload = {
-    title: 'NotiStar Cloud iOS',
-    body: 'Có thông báo mới hoặc tin nhắn thu hồi vừa đồng bộ từ Google Drive!',
-    url: './index.html?tab=all'
-  };
-
-  if (event.data) {
-    try {
-      const parsed = event.data.json();
-      payload = Object.assign(payload, parsed);
-    } catch (e) {
-      payload.body = event.data.text();
-    }
-  }
-
-  event.waitUntil(
-    self.registration.showNotification(payload.title, {
-      body: payload.body,
-      tag: payload.tag || 'notistar-cloud-sync',
-      data: { url: payload.url || './index.html' },
-      vibrate: [150, 80, 150]
-    })
-  );
-});
-
-self.addEventListener('notificationclick', (event) => {
-  event.notification.close();
-  const targetUrl = (event.notification.data && event.notification.data.url) || './index.html';
-  event.waitUntil(
-    self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clientList) => {
-      for (const client of clientList) {
-        if ('focus' in client) {
-          client.postMessage({ type: 'NAVIGATE_TAB', url: targetUrl });
-          return client.focus();
+    fetch(req, { cache: "no-store" })
+      .then((networkRes) => {
+        if (networkRes && networkRes.status === 200 && url.origin === self.location.origin) {
+          const clone = networkRes.clone();
+          caches.open(CACHE_NAME).then((cache) => cache.put(req, clone)).catch(() => {});
         }
-      }
-      if (self.clients.openWindow) {
-        return self.clients.openWindow(targetUrl);
-      }
-    })
+        return networkRes;
+      })
+      .catch(() => {
+        return caches.match(req).then((cached) => {
+          if (cached) return cached;
+          if (req.mode === "navigate") {
+            return caches.match("./index.html");
+          }
+          return new Response("Offline", { status: 503 });
+        });
+      })
   );
 });
 
-self.addEventListener('message', (event) => {
-  if (event.data && event.data.type === 'SKIP_WAITING') {
+self.addEventListener("message", (event) => {
+  if (event.data && event.data.type === "SKIP_WAITING") {
     self.skipWaiting();
   }
 });
