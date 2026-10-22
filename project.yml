@@ -1,0 +1,36 @@
+name: NotiStarCloud
+options:
+  bundleIdPrefix: com.notistar.cloud
+  deploymentTarget:
+    iOS: "16.0"
+  xcodeVersion: "15.0"
+  generateEmptyDirectories: true
+
+settings:
+  base:
+    SWIFT_VERSION: "5.9"
+    IPHONEOS_DEPLOYMENT_TARGET: "16.0"
+    TARGETED_DEVICE_FAMILY: "1,2"
+    MARKETING_VERSION: "7.0.0"
+    CURRENT_PROJECT_VERSION: "700"
+
+targets:
+  NotiStarCloud:
+    type: application
+    platform: iOS
+    deploymentTarget: "16.0"
+    sources:
+      - path: NotiStarCloud
+        excludes:
+          - "Info.plist"
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.notistar.cloud.ios
+        PRODUCT_NAME: NotiStarCloud
+        INFOPLIST_FILE: NotiStarCloud/Info.plist
+        GENERATE_INFOPLIST_FILE: NO
+        SUPPORTS_MACCATALYST: NO
+        CODE_SIGN_IDENTITY: ""
+        CODE_SIGNING_REQUIRED: NO
+        CODE_SIGNING_ALLOWED: NO
+        ENABLE_PREVIEWS: YES

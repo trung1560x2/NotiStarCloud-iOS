@@ -1,0 +1,53 @@
+name: Build NotiStarCloud OneUI 7 iOS (.ipa)
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+  workflow_dispatch:
+
+jobs:
+  build-unsigned-ipa:
+    name: Build Unsigned iOS IPA (AltStore / Sideloadly / TrollStore / ESign)
+    runs-on: macos-14
+
+    steps:
+      - name: Checkout Source Code
+        uses: actions/checkout@v4
+
+      - name: Install XcodeGen
+        run: |
+          if ! command -v xcodegen &> /dev/null; then
+            brew install xcodegen
+          fi
+
+      - name: Generate Xcode Project & Build Release App
+        run: |
+          if [ -d "NotiStarCloud_iOS" ]; then
+            cd NotiStarCloud_iOS
+          fi
+
+          xcodegen generate
+
+          xcodebuild clean build \
+            -project NotiStarCloud.xcodeproj \
+            -scheme NotiStarCloud \
+            -configuration Release \
+            -sdk iphoneos \
+            -derivedDataPath build \
+            CODE_SIGN_IDENTITY="" \
+            CODE_SIGNING_REQUIRED=NO \
+            CODE_SIGNING_ALLOWED=NO
+
+          mkdir -p Payload
+          cp -r build/Build/Products/Release-iphoneos/NotiStarCloud.app Payload/
+          zip -r9 "$GITHUB_WORKSPACE/NotiStarCloud_OneUI7_iOS.ipa" Payload
+
+      - name: Upload NotiStarCloud_OneUI7_iOS.ipa Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: NotiStarCloud_OneUI7_iOS-IPA
+          path: ${{ github.workspace }}/NotiStarCloud_OneUI7_iOS.ipa
+          if-no-files-found: error
+          retention-days: 90
