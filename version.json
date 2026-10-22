@@ -1,11 +1,11 @@
 {
-  "versionCode": 6,
-  "androidVersionCode": 7,
-  "versionName": "9.2.0-Pro",
-  "updatedAt": "2026-10-22T16:46:30+07:00",
+  "versionCode": 8,
+  "androidVersionCode": 8,
+  "versionName": "9.3.0-OneUI9-Liquid",
+  "updatedAt": "2026-10-22T17:27:30+07:00",
   "resetFalseRevokedVersion": 3,
   "forceSnapshotReload": true,
   "androidApkUrl": "https://trung1560x2.github.io/NotiStarCloud-iOS/NotiStarCloud_OneUI7_AutoDrive.apk",
   "iosWebAppUrl": "https://trung1560x2.github.io/NotiStarCloud-iOS/",
-  "changelog": "• Nâng cấp lên v9.2.0-Pro cho cả iOS & Android:\n• [Mới] Chế độ Gom nhóm theo Người gửi / Hội thoại (nút 'Hội thoại' cạnh thanh tìm kiếm)\n• [Mới] Tab & Radar Từ khóa Khẩn cấp / VIP (🔥 VIP) tự động bắt tin quan trọng\n• [Mới] Tự động bóc tách Mã Vận Đơn (Shopee SPXVN, GHN, GHTK, ViettelPost) & Mã Giảm Giá Voucher\n• [Mới] Biểu đồ Phân tích Hoạt động 24 Giờ & Top 5 Người liên hệ nhiều nhất trong mục Quản lý\n• [Mới] Nút Ghim sao nhanh (★) trên thẻ & Chia sẻ toàn bộ cuộc hội thoại qua iOS Share Sheet"
+  "changelog": "• Nâng cấp đại diện mạo Android lên v9.3.0 (One UI 9 + Apple Liquid Glass):\n• [Giao diện mới] Nền kính không gian 3D (Spatial Obsidian + Aurora Mesh) kết hợp viền phản xạ ánh sáng khúc xạ (Specular Rim Light)\n• [Thiết kế mới] Đảo điều khiển nổi (Floating Top Control Island) & Thanh lọc thông báo viên nang nổi (Floating Bottom Filter Capsule Dock)\n• [Thẻ kính đa trạng thái] Tự động chuyển hiệu ứng kính: Kính Đỏ Crimson cho tin bị thu hồi, Kính Vàng Hổ Phách cho tin VIP, Kính Xanh Cyan tiêu chuẩn\n• [Tiện ích nhanh 1-chạm] Nút '💬 Hội thoại' gom nhóm tin nhắn ngay trên thanh tìm kiếm + Tự động hiện nút Copy OTP / Vận đơn Shopee-GHN-GHTK / Mã Voucher"
 }
