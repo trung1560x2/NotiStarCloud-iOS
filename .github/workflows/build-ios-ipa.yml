@@ -29,6 +29,7 @@ jobs:
           fi
 
           xcodegen generate
+          sed -i '' 's/objectVersion = 77;/objectVersion = 56;/g' NotiStarCloud.xcodeproj/project.pbxproj
 
           xcodebuild clean build \
             -project NotiStarCloud.xcodeproj \
