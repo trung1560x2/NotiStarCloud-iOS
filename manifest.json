@@ -1,0 +1,49 @@
+{
+  "name": "NotiStar Cloud — iOS & OneUI 7",
+  "short_name": "NotiStar Cloud",
+  "description": "Lưu trữ mọi thông báo, Chống thu hồi tin nhắn & ảnh (Zalo/Messenger/Telegram), Sổ phụ Ngân hàng, Copy OTP 1 chạm & Đồng bộ Google Drive thời gian thực trên iPhone/iPad.",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "display_override": ["standalone", "minimal-ui"],
+  "orientation": "portrait-primary",
+  "background_color": "#090A0F",
+  "theme_color": "#090A0F",
+  "lang": "vi",
+  "dir": "ltr",
+  "categories": ["productivity", "utilities", "finance"],
+  "icons": [
+    {
+      "src": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Cdefs%3E%3ClinearGradient id='bg' x1='0%25' y1='0%25' x2='100%25' y2='100%25'%3E%3Cstop offset='0%25' stop-color='%232563EB'/%3E%3Cstop offset='50%25' stop-color='%234F46E5'/%3E%3Cstop offset='100%25' stop-color='%239333EA'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='512' height='512' rx='118' fill='url(%23bg)'/%3E%3Cpath d='M256 96c-70.7 0-128 57.3-128 128v60l-28 36v20h312v-20l-28-36v-60c0-70.7-57.3-128-128-128zm0 304c26.5 0 48-21.5 48-48h-96c0 26.5 21.5 48 48 48z' fill='%23ffffff' opacity='0.96'/%3E%3Ccircle cx='368' cy='144' r='54' fill='%23EF4444' stroke='%2312141C' stroke-width='12'/%3E%3Cpath d='M368 114l9 20 22 3-16 15 4 22-19-10-19 10 4-22-16-15 22-3z' fill='%23ffffff'/%3E%3C/svg%3E",
+      "sizes": "192x192",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Cdefs%3E%3ClinearGradient id='bg' x1='0%25' y1='0%25' x2='100%25' y2='100%25'%3E%3Cstop offset='0%25' stop-color='%232563EB'/%3E%3Cstop offset='50%25' stop-color='%234F46E5'/%3E%3Cstop offset='100%25' stop-color='%239333EA'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='512' height='512' rx='118' fill='url(%23bg)'/%3E%3Cpath d='M256 96c-70.7 0-128 57.3-128 128v60l-28 36v20h312v-20l-28-36v-60c0-70.7-57.3-128-128-128zm0 304c26.5 0 48-21.5 48-48h-96c0 26.5 21.5 48 48 48z' fill='%23ffffff' opacity='0.96'/%3E%3Ccircle cx='368' cy='144' r='54' fill='%23EF4444' stroke='%2312141C' stroke-width='12'/%3E%3Cpath d='M368 114l9 20 22 3-16 15 4 22-19-10-19 10 4-22-16-15 22-3z' fill='%23ffffff'/%3E%3C/svg%3E",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "🚫 Đã thu hồi",
+      "short_name": "Thu hồi",
+      "description": "Xem tin nhắn & ảnh bị thu hồi",
+      "url": "./index.html?tab=revoked"
+    },
+    {
+      "name": "🏦 Sổ phụ Ngân hàng",
+      "short_name": "Ngân hàng",
+      "description": "Thống kê biến động số dư + / - VND",
+      "url": "./index.html?tab=bank"
+    },
+    {
+      "name": "➕ Lưu nhanh từ iPhone",
+      "short_name": "Lưu nhanh",
+      "description": "Lưu Clipboard hoặc tạo ghi chú mới",
+      "url": "./index.html?capture=1"
+    }
+  ]
+}

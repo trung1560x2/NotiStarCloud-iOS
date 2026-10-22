@@ -1,0 +1,2871 @@
+<!DOCTYPE html>
+<html lang="vi" class="dark">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="NotiStar Cloud" />
+  <meta name="theme-color" content="#090A0F" />
+  <meta name="format-detection" content="telephone=no" />
+  <title>NotiStar Cloud — iOS 18 &amp; OneUI 7</title>
+
+  <link rel="manifest" href="./manifest.json" />
+  <!-- Apple Touch Icon tự động sinh bằng Canvas PNG 180x180 + fallback SVG -->
+  <link id="appleTouchIcon" rel="apple-touch-icon" sizes="180x180" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Cdefs%3E%3ClinearGradient id='bg' x1='0%25' y1='0%25' x2='100%25' y2='100%25'%3E%3Cstop offset='0%25' stop-color='%232563EB'/%3E%3Cstop offset='50%25' stop-color='%234F46E5'/%3E%3Cstop offset='100%25' stop-color='%239333EA'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='512' height='512' rx='118' fill='url(%23bg)'/%3E%3Cpath d='M256 96c-70.7 0-128 57.3-128 128v60l-28 36v20h312v-20l-28-36v-60c0-70.7-57.3-128-128-128zm0 304c26.5 0 48-21.5 48-48h-96c0 26.5 21.5 48 48 48z' fill='%23ffffff'/%3E%3Ccircle cx='368' cy='144' r='54' fill='%23EF4444' stroke='%2312141C' stroke-width='12'/%3E%3C/svg%3E" />
+
+  <style>
+    :root {
+      --bg-root: #090A0F;
+      --bg-surface: #12141E;
+      --bg-card: #191C2A;
+      --bg-card-hover: #202436;
+      --bg-glass: rgba(18, 20, 30, 0.82);
+      --border-subtle: rgba(255, 255, 255, 0.08);
+      --border-highlight: rgba(79, 139, 255, 0.45);
+      --text-primary: #F4F6FB;
+      --text-secondary: #949BB0;
+      --text-muted: #646B80;
+      --accent-blue: #2563EB;
+      --accent-blue-light: #4F8BFF;
+      --accent-purple: #8B5CF6;
+      --accent-green: #10B981;
+      --accent-red: #EF4444;
+      --accent-amber: #F59E0B;
+      --safe-top: env(safe-area-inset-top, 20px);
+      --safe-bottom: env(safe-area-inset-bottom, 20px);
+      --safe-left: env(safe-area-inset-left, 0px);
+      --safe-right: env(safe-area-inset-right, 0px);
+      --radius-xl: 24px;
+      --radius-lg: 18px;
+      --radius-md: 14px;
+      --radius-pill: 999px;
+    }
+
+    * {
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    html, body {
+      margin: 0;
+      padding: 0;
+      background-color: var(--bg-root);
+      color: var(--text-primary);
+      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      -webkit-font-smoothing: antialiased;
+      overscroll-behavior-y: none;
+      min-height: 100vh;
+      min-height: 100dvh;
+      user-select: none;
+    }
+
+    /* Cho phép chọn text trong nội dung thông báo */
+    .selectable {
+      user-select: text;
+      -webkit-user-select: text;
+    }
+
+    /* App Container */
+    .app-shell {
+      max-width: 780px;
+      margin: 0 auto;
+      padding-top: calc(var(--safe-top) + 8px);
+      padding-bottom: calc(var(--safe-bottom) + 92px);
+      padding-left: calc(var(--safe-left) + 14px);
+      padding-right: calc(var(--safe-right) + 14px);
+    }
+
+    /* Sticky Glass Header (iOS 18 + OneUI 7 style) */
+    .top-header {
+      position: sticky;
+      top: 0;
+      z-index: 50;
+      background: var(--bg-glass);
+      backdrop-filter: blur(22px) saturate(180%);
+      -webkit-backdrop-filter: blur(22px) saturate(180%);
+      margin: 0 -14px 12px -14px;
+      padding: 10px 14px 12px 14px;
+      border-bottom: 1px solid var(--border-subtle);
+    }
+
+    .brand-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+
+    .brand-left {
+      display: flex;
+      align-items: center;
+      gap: 11px;
+    }
+
+    .app-squircle-logo {
+      width: 42px;
+      height: 42px;
+      border-radius: 13px;
+      background: linear-gradient(135deg, #2563EB 0%, #4F46E5 50%, #9333EA 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 6px 18px rgba(79, 70, 229, 0.42);
+      position: relative;
+      flex-shrink: 0;
+    }
+
+    .app-squircle-logo svg {
+      width: 24px;
+      height: 24px;
+      fill: #FFFFFF;
+    }
+
+    .live-dot {
+      position: absolute;
+      top: -3px;
+      right: -3px;
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      background: #10B981;
+      border: 2px solid var(--bg-root);
+      box-shadow: 0 0 8px #10B981;
+    }
+
+    .brand-titles h1 {
+      font-size: 19px;
+      font-weight: 800;
+      margin: 0;
+      letter-spacing: -0.3px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .ios-badge {
+      font-size: 10px;
+      font-weight: 700;
+      padding: 2px 7px;
+      border-radius: var(--radius-pill);
+      background: linear-gradient(90deg, #2563EB, #7C3AED);
+      color: #FFF;
+      letter-spacing: 0.3px;
+    }
+
+    .sync-status-line {
+      font-size: 11.5px;
+      color: var(--text-secondary);
+      margin-top: 2px;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 220px;
+    }
+
+    @media (min-width: 480px) {
+      .sync-status-line {
+        max-width: 360px;
+      }
+    }
+
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .icon-btn {
+      width: 36px;
+      height: 36px;
+      border-radius: 12px;
+      border: 1px solid var(--border-subtle);
+      background: var(--bg-card);
+      color: var(--text-primary);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+      cursor: pointer;
+      transition: transform 0.14s ease, background 0.15s ease, border-color 0.15s ease;
+    }
+
+    .icon-btn:active {
+      transform: scale(0.91);
+    }
+
+    .icon-btn.active {
+      background: rgba(37, 99, 235, 0.25);
+      border-color: var(--accent-blue-light);
+      color: #60A5FA;
+    }
+
+    .icon-btn.spinning svg,
+    .icon-btn.spinning span {
+      animation: spin 0.9s linear infinite;
+    }
+
+    @keyframes spin {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
+
+    /* Search & Quick Action Bar */
+    .search-row {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+
+    .search-input-wrap {
+      flex: 1;
+      position: relative;
+      display: flex;
+      align-items: center;
+    }
+
+    .search-input-wrap .search-icon {
+      position: absolute;
+      left: 13px;
+      color: var(--text-secondary);
+      font-size: 14px;
+      pointer-events: none;
+    }
+
+    .search-input {
+      width: 100%;
+      padding: 10px 34px 10px 36px;
+      border-radius: var(--radius-pill);
+      border: 1px solid var(--border-subtle);
+      background: var(--bg-card);
+      color: var(--text-primary);
+      font-size: 14px;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+
+    .search-input:focus {
+      border-color: var(--accent-blue-light);
+    }
+
+    .clear-search-btn {
+      position: absolute;
+      right: 10px;
+      background: none;
+      border: none;
+      color: var(--text-secondary);
+      font-size: 15px;
+      cursor: pointer;
+      display: none;
+      padding: 2px 5px;
+    }
+
+    /* Horizontal Scrollable Filter Pills (OneUI 7 style) */
+    .filter-tabs-scroll {
+      display: flex;
+      gap: 7px;
+      overflow-x: auto;
+      scrollbar-width: none;
+      -ms-overflow-style: none;
+      padding-bottom: 2px;
+    }
+
+    .filter-tabs-scroll::-webkit-scrollbar {
+      display: none;
+    }
+
+    .tab-pill {
+      flex-shrink: 0;
+      padding: 7px 13px;
+      border-radius: var(--radius-pill);
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      color: var(--text-secondary);
+      font-size: 12.5px;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.16s ease;
+    }
+
+    .tab-pill:active {
+      transform: scale(0.95);
+    }
+
+    .tab-pill.active {
+      background: var(--accent-blue);
+      border-color: var(--accent-blue-light);
+      color: #FFFFFF;
+      box-shadow: 0 4px 14px rgba(37, 99, 235, 0.38);
+    }
+
+    .tab-pill.tab-revoked.active {
+      background: linear-gradient(135deg, #DC2626, #991B1B);
+      border-color: #F87171;
+      box-shadow: 0 4px 14px rgba(239, 68, 68, 0.38);
+    }
+
+    .tab-count {
+      font-size: 10.5px;
+      padding: 1px 6px;
+      border-radius: var(--radius-pill);
+      background: rgba(255, 255, 255, 0.12);
+      color: inherit;
+      font-weight: 700;
+    }
+
+    /* Summary Bento Grid */
+    .bento-stats {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+
+    .bento-card {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-subtle);
+      border-radius: 16px;
+      padding: 10px 8px;
+      text-align: center;
+      cursor: pointer;
+      transition: transform 0.14s ease, border-color 0.14s ease;
+    }
+
+    .bento-card:active {
+      transform: scale(0.96);
+    }
+
+    .bento-num {
+      font-size: 17px;
+      font-weight: 800;
+      letter-spacing: -0.4px;
+    }
+
+    .bento-label {
+      font-size: 10.5px;
+      color: var(--text-secondary);
+      margin-top: 2px;
+      font-weight: 600;
+    }
+
+    /* Install Banner for Safari iOS */
+    .install-banner {
+      background: linear-gradient(135deg, rgba(37, 99, 235, 0.2), rgba(139, 92, 246, 0.2));
+      border: 1px solid rgba(79, 139, 255, 0.35);
+      border-radius: var(--radius-lg);
+      padding: 12px 14px;
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+    }
+
+    .install-banner-text {
+      font-size: 12.5px;
+      line-height: 1.4;
+      color: #E2E8F0;
+    }
+
+    .install-banner-text strong {
+      color: #60A5FA;
+    }
+
+    /* Smart Banking Ledger Panel */
+    .banking-panel {
+      background: linear-gradient(145deg, #131B2E 0%, #111522 100%);
+      border: 1px solid rgba(52, 211, 153, 0.28);
+      border-radius: var(--radius-xl);
+      padding: 16px;
+      margin-bottom: 14px;
+      display: none;
+    }
+
+    .banking-panel.visible {
+      display: block;
+    }
+
+    .banking-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 12px;
+    }
+
+    .banking-header h3 {
+      margin: 0;
+      font-size: 15px;
+      font-weight: 800;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .banking-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+
+    .bank-metric {
+      background: rgba(9, 10, 15, 0.55);
+      border: 1px solid var(--border-subtle);
+      border-radius: 14px;
+      padding: 10px;
+    }
+
+    .bank-metric-label {
+      font-size: 11px;
+      color: var(--text-secondary);
+      margin-bottom: 4px;
+    }
+
+    .bank-metric-val {
+      font-size: 13.5px;
+      font-weight: 800;
+      word-break: break-word;
+    }
+
+    .val-in { color: #34D399; }
+    .val-out { color: #F87171; }
+    .val-net { color: #60A5FA; }
+
+    .bank-chips-row {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+
+    .bank-chip {
+      font-size: 11px;
+      font-weight: 600;
+      padding: 5px 10px;
+      border-radius: var(--radius-pill);
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid var(--border-subtle);
+      color: #D1D5DB;
+      cursor: pointer;
+    }
+
+    .bank-chip.active {
+      background: rgba(16, 185, 129, 0.22);
+      border-color: #34D399;
+      color: #6EE7B7;
+    }
+
+    /* Notification Card */
+    .noti-list {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .noti-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-lg);
+      padding: 14px 15px;
+      transition: transform 0.12s ease, border-color 0.15s ease;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .noti-card.revoked {
+      background: linear-gradient(145deg, #28151D 0%, #1B141C 100%);
+      border: 1.5px solid #EF4444;
+      box-shadow: 0 4px 20px rgba(239, 68, 68, 0.16);
+    }
+
+    .revoked-ribbon {
+      background: rgba(239, 68, 68, 0.22);
+      border: 1px solid rgba(248, 113, 113, 0.45);
+      color: #FCA5A5;
+      font-size: 11px;
+      font-weight: 800;
+      padding: 4px 10px;
+      border-radius: var(--radius-pill);
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      margin-bottom: 8px;
+      letter-spacing: 0.2px;
+    }
+
+    .card-top {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      margin-bottom: 7px;
+    }
+
+    .app-icon-box {
+      width: 30px;
+      height: 30px;
+      border-radius: 9px;
+      background: #262B3D;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+      font-weight: 800;
+      flex-shrink: 0;
+      overflow: hidden;
+    }
+
+    .app-icon-box img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .card-meta {
+      flex: 1;
+      min-width: 0;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+
+    .app-name-tag {
+      font-size: 12.5px;
+      font-weight: 700;
+      color: var(--accent-blue-light);
+    }
+
+    .pill-badge {
+      font-size: 10px;
+      font-weight: 700;
+      padding: 2px 7px;
+      border-radius: var(--radius-pill);
+    }
+
+    .badge-chat {
+      background: rgba(139, 92, 246, 0.2);
+      color: #C4B5FD;
+    }
+
+    .badge-bank-in {
+      background: rgba(16, 185, 129, 0.2);
+      color: #6EE7B7;
+    }
+
+    .badge-bank-out {
+      background: rgba(245, 158, 11, 0.2);
+      color: #FCD34D;
+    }
+
+    .badge-cloud {
+      background: rgba(37, 99, 235, 0.18);
+      color: #93C5FD;
+    }
+
+    .card-time {
+      font-size: 11px;
+      color: var(--text-secondary);
+      margin-left: auto;
+      flex-shrink: 0;
+    }
+
+    .star-btn {
+      background: none;
+      border: none;
+      color: var(--text-muted);
+      font-size: 17px;
+      cursor: pointer;
+      padding: 2px 4px;
+      line-height: 1;
+    }
+
+    .star-btn.starred {
+      color: #FBBF24;
+    }
+
+    .card-title {
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--text-primary);
+      margin-bottom: 4px;
+      line-height: 1.35;
+      word-break: break-word;
+    }
+
+    .card-body {
+      font-size: 13.8px;
+      color: #D5D9E6;
+      line-height: 1.48;
+      white-space: pre-wrap;
+      word-break: break-word;
+      transition: filter 0.2s ease;
+    }
+
+    /* Privacy Mask Blur */
+    body.privacy-masked .card-body,
+    body.privacy-masked .card-media-img,
+    body.privacy-masked .otp-copy-btn,
+    body.privacy-masked .bank-metric-val {
+      filter: blur(8px);
+    }
+
+    body.privacy-masked .noti-card:active .card-body,
+    body.privacy-masked .noti-card:hover .card-body,
+    body.privacy-masked .noti-card:active .card-media-img {
+      filter: none;
+    }
+
+    /* Attached Image / Photo */
+    .card-media-wrap {
+      margin-top: 10px;
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .card-media-img {
+      max-width: 100%;
+      max-height: 280px;
+      border-radius: 14px;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      cursor: zoom-in;
+      object-fit: contain;
+      background: #0D0F17;
+    }
+
+    /* Smart Action Chips (OTP, Phone, Links, Speak, Copy) */
+    .smart-actions-bar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 7px;
+      margin-top: 10px;
+      padding-top: 9px;
+      border-top: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    .otp-copy-btn {
+      background: linear-gradient(135deg, #059669, #10B981);
+      color: #FFFFFF;
+      border: none;
+      border-radius: var(--radius-pill);
+      padding: 6px 13px;
+      font-size: 12.5px;
+      font-weight: 800;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      box-shadow: 0 3px 12px rgba(16, 185, 129, 0.35);
+    }
+
+    .smart-chip {
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid var(--border-subtle);
+      color: #CBD5E1;
+      border-radius: var(--radius-pill);
+      padding: 5px 11px;
+      font-size: 11.5px;
+      font-weight: 600;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      cursor: pointer;
+    }
+
+    .smart-chip:active {
+      background: rgba(37, 99, 235, 0.25);
+      border-color: var(--accent-blue-light);
+    }
+
+    .smart-chip.chip-phone {
+      color: #6EE7B7;
+      border-color: rgba(16, 185, 129, 0.3);
+    }
+
+    .smart-chip.chip-link {
+      color: #93C5FD;
+      border-color: rgba(59, 130, 246, 0.3);
+    }
+
+    /* Bottom Floating Dock (iOS 18 Tab Bar) */
+    .bottom-dock {
+      position: fixed;
+      bottom: calc(var(--safe-bottom) + 10px);
+      left: 50%;
+      transform: translateX(-50%);
+      width: calc(100% - 28px);
+      max-width: 520px;
+      background: rgba(18, 20, 32, 0.88);
+      backdrop-filter: blur(24px) saturate(190%);
+      -webkit-backdrop-filter: blur(24px) saturate(190%);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 26px;
+      padding: 7px 10px;
+      display: flex;
+      align-items: center;
+      justify-content: space-around;
+      z-index: 60;
+      box-shadow: 0 12px 34px rgba(0, 0, 0, 0.55);
+    }
+
+    .dock-btn {
+      background: none;
+      border: none;
+      color: var(--text-secondary);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 3px;
+      font-size: 10.5px;
+      font-weight: 600;
+      cursor: pointer;
+      padding: 5px 10px;
+      border-radius: 16px;
+      transition: all 0.15s ease;
+    }
+
+    .dock-btn .dock-icon {
+      font-size: 18px;
+    }
+
+    .dock-btn.active {
+      color: #60A5FA;
+      background: rgba(37, 99, 235, 0.16);
+    }
+
+    .dock-btn-primary {
+      background: linear-gradient(135deg, #2563EB, #7C3AED);
+      color: #FFF !important;
+      padding: 8px 16px;
+      border-radius: 18px;
+      box-shadow: 0 4px 14px rgba(79, 70, 229, 0.45);
+    }
+
+    /* Modals & Sheets (iOS Bottom Sheet style) */
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.68);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      z-index: 100;
+      display: none;
+      align-items: flex-end;
+      justify-content: center;
+      padding: 14px;
+    }
+
+    .modal-backdrop.open {
+      display: flex;
+    }
+
+    .modal-sheet {
+      width: 100%;
+      max-width: 560px;
+      max-height: 88dvh;
+      overflow-y: auto;
+      background: #151826;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 26px;
+      padding: 20px;
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.7);
+      animation: slideUp 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    @keyframes slideUp {
+      from { transform: translateY(40px); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
+    }
+
+    .sheet-handle {
+      width: 42px;
+      height: 5px;
+      background: rgba(255, 255, 255, 0.2);
+      border-radius: 99px;
+      margin: 0 auto 14px auto;
+    }
+
+    .sheet-title {
+      font-size: 18px;
+      font-weight: 800;
+      margin: 0 0 14px 0;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .form-group {
+      margin-bottom: 12px;
+    }
+
+    .form-label {
+      display: block;
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--text-secondary);
+      margin-bottom: 5px;
+    }
+
+    .form-input, .form-textarea, .form-select {
+      width: 100%;
+      padding: 11px 13px;
+      border-radius: 13px;
+      border: 1px solid var(--border-subtle);
+      background: #0D0F18;
+      color: var(--text-primary);
+      font-size: 13.5px;
+      outline: none;
+      font-family: inherit;
+    }
+
+    .form-input:focus, .form-textarea:focus {
+      border-color: var(--accent-blue-light);
+    }
+
+    .btn-row {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-top: 12px;
+    }
+
+    .btn {
+      padding: 10px 16px;
+      border-radius: 14px;
+      border: 1px solid var(--border-subtle);
+      background: var(--bg-card);
+      color: var(--text-primary);
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      text-decoration: none;
+      flex: 1;
+    }
+
+    .btn-primary {
+      background: var(--accent-blue);
+      border-color: var(--accent-blue-light);
+      color: #FFF;
+    }
+
+    .btn-success {
+      background: #059669;
+      border-color: #34D399;
+      color: #FFF;
+    }
+
+    .btn-danger {
+      background: rgba(239, 68, 68, 0.18);
+      border-color: rgba(239, 68, 68, 0.4);
+      color: #FCA5A5;
+    }
+
+    /* Passcode Lock Screen Overlay (iOS 18 Lock Screen style) */
+    .lock-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(9, 10, 15, 0.96);
+      backdrop-filter: blur(28px);
+      -webkit-backdrop-filter: blur(28px);
+      z-index: 200;
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+    }
+
+    .lock-overlay.locked {
+      display: flex;
+    }
+
+    .pin-dots {
+      display: flex;
+      gap: 16px;
+      margin: 22px 0 32px 0;
+    }
+
+    .pin-dot {
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      border: 2px solid #60A5FA;
+      transition: background 0.15s ease, transform 0.15s ease;
+    }
+
+    .pin-dot.filled {
+      background: #60A5FA;
+      transform: scale(1.15);
+    }
+
+    .pin-keypad {
+      display: grid;
+      grid-template-columns: repeat(3, 74px);
+      gap: 16px;
+    }
+
+    .pin-key {
+      width: 74px;
+      height: 74px;
+      border-radius: 50%;
+      border: 1px solid rgba(255, 255, 255, 0.14);
+      background: rgba(255, 255, 255, 0.06);
+      color: #FFF;
+      font-size: 26px;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .pin-key:active {
+      background: rgba(79, 139, 255, 0.35);
+    }
+
+    /* Fullscreen Image Lightbox */
+    .lightbox-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.92);
+      z-index: 180;
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    .lightbox-overlay.open {
+      display: flex;
+    }
+
+    .lightbox-overlay img {
+      max-width: 96vw;
+      max-height: 78dvh;
+      border-radius: 16px;
+      object-fit: contain;
+    }
+
+    /* Toast Notification */
+    .toast-box {
+      position: fixed;
+      top: calc(var(--safe-top) + 14px);
+      left: 50%;
+      transform: translateX(-50%) translateY(-120px);
+      background: rgba(16, 24, 40, 0.95);
+      border: 1px solid var(--border-highlight);
+      color: #FFF;
+      padding: 10px 18px;
+      border-radius: var(--radius-pill);
+      font-size: 13px;
+      font-weight: 700;
+      z-index: 250;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.55);
+      transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+      pointer-events: none;
+      text-align: center;
+      max-width: 92vw;
+    }
+
+    .toast-box.show {
+      transform: translateX(-50%) translateY(0);
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 42px 20px;
+      background: var(--bg-surface);
+      border: 1px dashed var(--border-subtle);
+      border-radius: var(--radius-xl);
+      color: var(--text-secondary);
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Toast Feedback -->
+  <div id="toastBox" class="toast-box">Đã sao chép!</div>
+
+  <!-- iOS 18 Passcode Lock Overlay -->
+  <div id="lockOverlay" class="lock-overlay">
+    <div class="app-squircle-logo" style="width:56px;height:56px;margin-bottom:14px;">
+      <svg viewBox="0 0 24 24"><path d="M12 17a2 2 0 100-4 2 2 0 000 4zm6-9h-1V6a5 5 0 00-10 0v2H6a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V10a2 2 0 00-2-2zM9 6a3 3 0 116 0v2H9V6z"/></svg>
+    </div>
+    <h2 style="margin:0;font-size:20px;font-weight:800;">NotiStar Cloud được bảo vệ</h2>
+    <p id="lockSubtext" style="margin:6px 0 0 0;font-size:13px;color:var(--text-secondary);">Nhập mã PIN 4 số để mở khóa kho thông báo iOS</p>
+    <div class="pin-dots">
+      <div class="pin-dot" id="pinDot0"></div>
+      <div class="pin-dot" id="pinDot1"></div>
+      <div class="pin-dot" id="pinDot2"></div>
+      <div class="pin-dot" id="pinDot3"></div>
+    </div>
+    <div class="pin-keypad">
+      <button class="pin-key" onclick="pressPinKey('1')">1</button>
+      <button class="pin-key" onclick="pressPinKey('2')">2</button>
+      <button class="pin-key" onclick="pressPinKey('3')">3</button>
+      <button class="pin-key" onclick="pressPinKey('4')">4</button>
+      <button class="pin-key" onclick="pressPinKey('5')">5</button>
+      <button class="pin-key" onclick="pressPinKey('6')">6</button>
+      <button class="pin-key" onclick="pressPinKey('7')">7</button>
+      <button class="pin-key" onclick="pressPinKey('8')">8</button>
+      <button class="pin-key" onclick="pressPinKey('9')">9</button>
+      <button class="pin-key" style="font-size:14px;" onclick="clearPinInput()">Xóa</button>
+      <button class="pin-key" onclick="pressPinKey('0')">0</button>
+      <button class="pin-key" style="font-size:18px;" onclick="backspacePin()">⌫</button>
+    </div>
+  </div>
+
+  <!-- Fullscreen Photo Lightbox -->
+  <div id="lightboxOverlay" class="lightbox-overlay" onclick="closeLightbox()">
+    <img id="lightboxImg" src="" alt="Preview" onclick="event.stopPropagation()" />
+    <div style="display:flex;gap:12px;margin-top:16px;" onclick="event.stopPropagation()">
+      <a id="lightboxDownloadBtn" class="btn btn-primary" download="notistar_photo.jpg" href="#">⬇️ Lưu ảnh vào iPhone</a>
+      <button class="btn" onclick="closeLightbox()">Đóng</button>
+    </div>
+  </div>
+
+  <div class="app-shell">
+    <!-- Sticky Header -->
+    <header class="top-header">
+      <div class="brand-row">
+        <div class="brand-left">
+          <div class="app-squircle-logo" onclick="syncNow(true)" title="Chạm để đồng bộ ngay">
+            <svg viewBox="0 0 24 24">
+              <path d="M12 22c1.1 0 2-.9 2-2h-4a2 2 0 002 2zm6-6v-5c0-3.07-1.64-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.63 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2z"/>
+            </svg>
+            <span class="live-dot" id="liveSyncDot"></span>
+          </div>
+          <div class="brand-titles">
+            <h1>
+              NotiStar Cloud
+              <span class="ios-badge">iOS 18 • OneUI 7</span>
+            </h1>
+            <div class="sync-status-line" id="syncStatusText">
+              ☁️ Đang kết nối Google Drive...
+            </div>
+          </div>
+        </div>
+
+        <div class="header-actions">
+          <button class="icon-btn" id="btnSyncNow" onclick="syncNow(true)" title="Đồng bộ Google Drive ngay">
+            <span>🔄</span>
+          </button>
+          <button class="icon-btn" id="btnVoiceToggle" onclick="toggleVoiceAnnouncer()" title="Bật/Tắt Loa Ting-Ting đọc thông báo tiếng Việt">
+            <span id="voiceIconSpan">🔊</span>
+          </button>
+          <button class="icon-btn" id="btnPrivacyMask" onclick="togglePrivacyMask()" title="Chế độ Ẩn nội dung nhạy cảm (Privacy Mask)">
+            <span>🙈</span>
+          </button>
+          <button class="icon-btn" id="btnLockApp" onclick="handleLockButton()" title="Khóa mã PIN bảo mật">
+            <span>🔒</span>
+          </button>
+          <button class="icon-btn" onclick="openModal('cloudModal')" title="Cấu hình Google Drive &amp; Sao lưu">
+            <span>⚙️</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Search Row -->
+      <div class="search-row">
+        <div class="search-input-wrap">
+          <span class="search-icon">🔍</span>
+          <input
+            type="search"
+            id="searchInput"
+            class="search-input"
+            placeholder="Tìm tin nhắn, Zalo thu hồi, số tiền, OTP, SĐT..."
+            oninput="onSearchChange()"
+          />
+          <button id="clearSearchBtn" class="clear-search-btn" onclick="clearSearch()">✕</button>
+        </div>
+        <button class="icon-btn" onclick="openModal('captureModal')" title="Thêm nhanh Ghi chú / Lưu Clipboard iPhone" style="background:var(--accent-blue);border-color:var(--accent-blue-light);color:#FFF;">
+          <span>➕</span>
+        </button>
+      </div>
+
+      <!-- 7 Filter Tabs -->
+      <div class="filter-tabs-scroll" id="filterTabsBar">
+        <button class="tab-pill active" data-tab="all" onclick="switchTab('all')">
+          Tất cả <span class="tab-count" id="countAll">0</span>
+        </button>
+        <button class="tab-pill" data-tab="chat" onclick="switchTab('chat')">
+          💬 Tin nhắn <span class="tab-count" id="countChat">0</span>
+        </button>
+        <button class="tab-pill tab-revoked" data-tab="revoked" onclick="switchTab('revoked')">
+          🚫 Đã thu hồi <span class="tab-count" id="countRevoked">0</span>
+        </button>
+        <button class="tab-pill" data-tab="starred" onclick="switchTab('starred')">
+          ⭐ Đánh dấu <span class="tab-count" id="countStarred">0</span>
+        </button>
+        <button class="tab-pill" data-tab="media" onclick="switchTab('media')">
+          🖼️ Kho Ảnh <span class="tab-count" id="countMedia">0</span>
+        </button>
+        <button class="tab-pill" data-tab="bank" onclick="switchTab('bank')">
+          🏦 Ngân hàng <span class="tab-count" id="countBank">0</span>
+        </button>
+        <button class="tab-pill" data-tab="links" onclick="switchTab('links')">
+          🔗 Link &amp; SĐT <span class="tab-count" id="countLinks">0</span>
+        </button>
+      </div>
+    </header>
+
+    <!-- iOS Add to Home Screen Banner (Auto-hides when installed as standalone PWA) -->
+    <div id="iosInstallBanner" class="install-banner" style="display:none;">
+      <div class="install-banner-text">
+        📲 <strong>Cài làm App iPhone Full-Screen:</strong> Nhấn nút <strong>Chia sẻ [↑]</strong> trên Safari &rarr; chọn <strong>"Thêm vào Màn hình chính"</strong> để chạy độc lập như App gốc!
+      </div>
+      <button class="icon-btn" onclick="openModal('iosGuideModal')" title="Xem hướng dẫn chi tiết">ℹ️</button>
+    </div>
+
+    <!-- Bento Quick Stats -->
+    <section class="bento-stats">
+      <div class="bento-card" onclick="switchTab('all')">
+        <div class="bento-num" id="statTotal" style="color:#60A5FA;">0</div>
+        <div class="bento-label">Tổng lưu trữ</div>
+      </div>
+      <div class="bento-card" onclick="switchTab('revoked')">
+        <div class="bento-num" id="statRevoked" style="color:#F87171;">0</div>
+        <div class="bento-label">🚫 Thu hồi giữ lại</div>
+      </div>
+      <div class="bento-card" onclick="switchTab('media')">
+        <div class="bento-num" id="statMedia" style="color:#C084FC;">0</div>
+        <div class="bento-label">🖼️ Ảnh đính kèm</div>
+      </div>
+      <div class="bento-card" onclick="switchTab('bank')">
+        <div class="bento-num" id="statBankTx" style="color:#34D399;">0</div>
+        <div class="bento-label">🏦 Giao dịch NH</div>
+      </div>
+    </section>
+
+    <!-- Smart Banking Ledger Panel -->
+    <section id="bankingLedgerPanel" class="banking-panel">
+      <div class="banking-header">
+        <h3>🏦 Sổ phụ Ngân hàng &amp; Biến động Số dư</h3>
+        <button class="smart-chip" onclick="speakBankingSummary()">🔊 Đọc tổng kết</button>
+      </div>
+      <div class="banking-grid">
+        <div class="bank-metric">
+          <div class="bank-metric-label">Tổng tiền vào (+)</div>
+          <div class="bank-metric-val val-in" id="bankTotalIn">+0 VND</div>
+        </div>
+        <div class="bank-metric">
+          <div class="bank-metric-label">Tổng tiền ra (-)</div>
+          <div class="bank-metric-val val-out" id="bankTotalOut">-0 VND</div>
+        </div>
+        <div class="bank-metric">
+          <div class="bank-metric-label">Chênh lệch ròng</div>
+          <div class="bank-metric-val val-net" id="bankNetChange">0 VND</div>
+        </div>
+      </div>
+      <div class="bank-chips-row" id="bankBreakdownRow"></div>
+    </section>
+
+    <!-- Notification List Container -->
+    <main id="notiListContainer" class="noti-list"></main>
+  </div>
+
+  <!-- iOS Floating Bottom Dock -->
+  <nav class="bottom-dock">
+    <button class="dock-btn active" id="dockAll" onclick="switchTab('all')">
+      <span class="dock-icon">📥</span>
+      <span>Hộp thư</span>
+    </button>
+    <button class="dock-btn" id="dockRevoked" onclick="switchTab('revoked')">
+      <span class="dock-icon">🚫</span>
+      <span>Thu hồi</span>
+    </button>
+    <button class="dock-btn dock-btn-primary" onclick="openModal('captureModal')">
+      <span class="dock-icon">➕</span>
+      <span>Lưu nhanh</span>
+    </button>
+    <button class="dock-btn" id="dockBank" onclick="switchTab('bank')">
+      <span class="dock-icon">🏦</span>
+      <span>Ngân hàng</span>
+    </button>
+    <button class="dock-btn" id="dockCloud" onclick="openModal('cloudModal')">
+      <span class="dock-icon">☁️</span>
+      <span>Google Drive</span>
+    </button>
+  </nav>
+
+  <!-- Modal 1: Quick Capture / Clipboard Vault / Photo Note on iPhone -->
+  <div id="captureModal" class="modal-backdrop" onclick="closeModalOnBackdrop(event, 'captureModal')">
+    <div class="modal-sheet">
+      <div class="sheet-handle"></div>
+      <div class="sheet-title">
+        <span>➕ Lưu nhanh từ iPhone lên Cloud</span>
+        <button class="icon-btn" onclick="closeModal('captureModal')">✕</button>
+      </div>
+
+      <div class="btn-row" style="margin-top:0;margin-bottom:14px;">
+        <button class="btn btn-primary" onclick="pasteFromIosClipboard()">
+          📋 Dán tự động từ Clipboard iPhone
+        </button>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Ứng dụng nguồn</label>
+        <select id="capAppSelect" class="form-select">
+          <option value="Zalo|com.zing.zalo">💬 Zalo (iPhone / Đồng bộ)</option>
+          <option value="Messenger|com.facebook.orca">💬 Messenger</option>
+          <option value="Telegram|org.telegram.messenger">✈️ Telegram</option>
+          <option value="iMessage / SMS|com.apple.MobileSMS">🍏 iMessage / Tin nhắn iOS</option>
+          <option value="Ngân hàng iOS|vn.banking.ios">🏦 Ngân hàng / Biến động số dư</option>
+          <option value="iPhone Clipboard|com.apple.clipboard">📋 Bộ nhớ tạm iPhone (Clipboard Vault)</option>
+          <option value="Ghi chú nhanh|com.notistar.note">📝 Ghi chú cá nhân</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Tiêu đề / Người gửi</label>
+        <input type="text" id="capTitleInput" class="form-input" placeholder="VD: Nguyễn Văn A, Vietcombank, Mã OTP..." />
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Nội dung chi tiết (Tin nhắn, Số tiền +/- VND, Link, SĐT...)</label>
+        <textarea id="capBodyInput" class="form-textarea" rows="4" placeholder="Nhập hoặc dán nội dung tin nhắn, biến động số dư (+500,000 VND), mã OTP..."></textarea>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Đánh dấu đặc biệt &amp; Ảnh đính kèm (Tùy chọn)</label>
+        <div style="display:flex;gap:14px;align-items:center;margin-bottom:8px;">
+          <label style="display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer;">
+            <input type="checkbox" id="capRevokedCheck" /> 🚫 Đánh dấu là Tin nhắn thu hồi
+          </label>
+          <label style="display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer;">
+            <input type="checkbox" id="capStarredCheck" /> ⭐ Ghim quan trọng
+          </label>
+        </div>
+        <input type="file" id="capPhotoInput" accept="image/*" class="form-input" onchange="handleCapturePhotoSelect(event)" />
+        <div id="capPhotoPreviewWrap" style="display:none;margin-top:8px;">
+          <img id="capPhotoPreview" src="" alt="Preview" style="max-height:120px;border-radius:10px;" />
+        </div>
+      </div>
+
+      <div class="btn-row">
+        <button class="btn btn-success" onclick="saveCapturedNotification(true)">
+          ☁️ Lưu &amp; Đẩy lên Google Drive
+        </button>
+        <button class="btn" onclick="closeModal('captureModal')">Hủy</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal 2: Google Cloud Sync, Backup/Restore, PIN & Voice Settings -->
+  <div id="cloudModal" class="modal-backdrop" onclick="closeModalOnBackdrop(event, 'cloudModal')">
+    <div class="modal-sheet">
+      <div class="sheet-handle"></div>
+      <div class="sheet-title">
+        <span>☁️ Trung tâm Google Drive &amp; Cài đặt iOS</span>
+        <button class="icon-btn" onclick="closeModal('cloudModal')">✕</button>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Google Apps Script Web App URL (Đã cấu hình sẵn)</label>
+        <input type="url" id="cfgWebAppUrl" class="form-input" />
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">ID Thư mục Google Drive Lưu trữ (Đã cấu hình sẵn)</label>
+        <div style="display:flex;gap:8px;">
+          <input type="text" id="cfgDriveFolderId" class="form-input" style="flex:1;" />
+          <a id="openDriveFolderLink" href="https://drive.google.com/drive/folders/1LoHXambgX8-b_mbUfBYHvYqQTZA6k0IU" target="_blank" rel="noopener" class="btn" style="flex:0 0 auto;width:auto;">
+            📂 Mở Drive
+          </a>
+        </div>
+      </div>
+
+      <div class="form-group" style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+        <div>
+          <label class="form-label">Tên thiết bị đồng bộ</label>
+          <input type="text" id="cfgDeviceName" class="form-input" value="iPhone (NotiStar iOS)" />
+        </div>
+        <div>
+          <label class="form-label">Tự động làm mới (Auto-Pull)</label>
+          <select id="cfgAutoPollSec" class="form-select">
+            <option value="15">Mỗi 15 giây (Real-time)</option>
+            <option value="30" selected>Mỗi 30 giây</option>
+            <option value="60">Mỗi 60 giây</option>
+            <option value="0">Chỉ đồng bộ thủ công</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="btn-row">
+        <button class="btn btn-primary" onclick="saveCloudConfigAndSync()">
+          🔄 Lưu &amp; Kéo dữ liệu từ Google Drive ngay
+        </button>
+        <button class="btn" onclick="pushAllToCloud()">
+          ⬆️ Đẩy toàn bộ lên Drive
+        </button>
+      </div>
+
+      <hr style="border:none;border-top:1px solid var(--border-subtle);margin:16px 0;" />
+
+      <div class="form-label">📦 Sao lưu &amp; Khôi phục Tệp trực tiếp trên iPhone (Tệp / Files)</div>
+      <div class="btn-row">
+        <button class="btn btn-success" onclick="exportBackupJson()">⬇️ Xuất .JSON</button>
+        <button class="btn" onclick="exportBackupCsv()">📊 Xuất .CSV (Excel)</button>
+        <label class="btn" style="cursor:pointer;">
+          📂 Nhập .JSON
+          <input type="file" accept=".json,application/json" style="display:none;" onchange="importBackupJsonFile(event)" />
+        </label>
+      </div>
+
+      <hr style="border:none;border-top:1px solid var(--border-subtle);margin:16px 0;" />
+
+      <div class="form-label">🔊 Loa Ting-Ting Tiếng Việt &amp; Bảo mật Mã PIN iOS</div>
+      <div class="btn-row">
+        <button class="btn" onclick="testVietnameseVoice()">🔊 Test Loa Ting-Ting</button>
+        <button class="btn" onclick="configurePinCode()">🔒 Đặt / Đổi Mã PIN 4 số</button>
+        <button class="btn" onclick="openModal('iosGuideModal')">📲 Phím tắt iOS (Shortcuts)</button>
+      </div>
+
+      <div class="btn-row" style="margin-top:12px;">
+        <button class="btn" onclick="resetDefaultCloudConfig()">♻️ Khôi phục URL mặc định</button>
+        <button class="btn btn-danger" onclick="clearLocalDatabase()">🗑️ Xóa bộ nhớ đệm máy</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal 3: iOS Installation & Shortcuts Automation Guide -->
+  <div id="iosGuideModal" class="modal-backdrop" onclick="closeModalOnBackdrop(event, 'iosGuideModal')">
+    <div class="modal-sheet">
+      <div class="sheet-handle"></div>
+      <div class="sheet-title">
+        <span>📲 Hướng dẫn Cài đặt &amp; Phím tắt iPhone</span>
+        <button class="icon-btn" onclick="closeModal('iosGuideModal')">✕</button>
+      </div>
+
+      <div style="font-size:13.5px;line-height:1.55;color:#D5D9E6;">
+        <p style="margin-top:0;"><strong>Cách 1: Thêm App ra Màn hình chính iPhone (Không cần Mac/Xcode/Jailbreak)</strong></p>
+        <ol style="padding-left:18px;margin-top:6px;">
+          <li>Mở trang này bằng trình duyệt <strong>Safari</strong> trên iPhone/iPad (hoặc mở trực tiếp link Google Apps Script <code>?ui=ios</code>).</li>
+          <li>Nhấn vào biểu tượng <strong>Chia sẻ (Share [↑])</strong> ở thanh công cụ phía dưới Safari.</li>
+          <li>Cuộn xuống chọn <strong>"Thêm vào Màn hình chính" (Add to Home Screen)</strong> &rarr; nhấn <strong>Thêm (Add)</strong>.</li>
+          <li>Mở <strong>NotiStar Cloud</strong> từ màn hình chính: ứng dụng chạy toàn màn hình (Full-screen Dynamic Island), lưu trữ Offline và tự động đồng bộ 2 chiều với máy Android &amp; Google Drive của bạn!</li>
+        </ol>
+
+        <p><strong>Cách 2: Tự động bắt Tin nhắn / Giao dịch Ngân hàng trên iPhone bằng "Phím tắt" (iOS Shortcuts)</strong></p>
+        <p style="font-size:12.5px;color:var(--text-secondary);">Bạn có thể tạo 1 Tự động hóa (Automation) trong ứng dụng <strong>Phím tắt (Shortcuts)</strong> có sẵn của iPhone để khi nhận Tin nhắn / Giao dịch mới trên iPhone, máy tự đẩy thẳng lên Google Drive:</p>
+        <div style="background:#0B0D14;padding:10px 12px;border-radius:12px;border:1px solid var(--border-subtle);font-family:monospace;font-size:11.5px;word-break:break-all;" class="selectable" id="shortcutUrlBox">
+          https://script.google.com/macros/s/AKfycbzjPZ5K00RzxkpNRp_AMkq3FUrznjefkW-pq6cqlBzjeVuQ_Hp6YWeTiC9UvFqSy-r93w/exec
+        </div>
+        <div class="btn-row">
+          <button class="btn btn-primary" onclick="copyShortcutWebhookTemplate()">📋 Copy URL Webhook cho Phím tắt iOS</button>
+          <button class="btn" onclick="seedSampleDataIfNeeded(true)">✨ Nạp dữ liệu mẫu để thử nghiệm</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    /*************************************************************************
+     * 1. PRE-CONFIGURED USER CLOUD CONSTANTS (100% READY OUT OF THE BOX)
+     *************************************************************************/
+    const DEFAULT_DRIVE_FOLDER_ID = "1LoHXambgX8-b_mbUfBYHvYqQTZA6k0IU";
+    const DEFAULT_WEBAPP_URL = "https://script.google.com/macros/s/AKfycbzjPZ5K00RzxkpNRp_AMkq3FUrznjefkW-pq6cqlBzjeVuQ_Hp6YWeTiC9UvFqSy-r93w/exec";
+
+    const STORAGE_KEYS = {
+      WEBAPP_URL: "notistar_ios_webapp_url",
+      FOLDER_ID: "notistar_ios_drive_folder_id",
+      DEVICE_NAME: "notistar_ios_device_name",
+      AUTO_POLL_SEC: "notistar_ios_auto_poll_sec",
+      VOICE_ENABLED: "notistar_ios_voice_enabled",
+      PRIVACY_MASK: "notistar_ios_privacy_mask",
+      PIN_CODE: "notistar_ios_pin_code",
+      FALLBACK_ITEMS: "notistar_ios_items_backup_v1"
+    };
+
+    const IDB_NAME = "NotiStarCloud_iOS_DB";
+    const IDB_VERSION = 1;
+    const IDB_STORE = "notifications";
+
+    // Application State
+    let allNotifications = [];
+    let currentTab = "all";
+    let currentBankFilter = "ALL";
+    let searchQuery = "";
+    let isSyncing = false;
+    let pollTimer = null;
+    let pendingCapturePhotoB64 = "";
+    let announcedIds = new Set();
+    let enteredPin = "";
+    let pinSetupMode = false;
+
+    /*************************************************************************
+     * 2. REGEX & ANALYZERS (100% PARITY WITH ANDROID SmartBankingAndOtpAnalyzer)
+     *************************************************************************/
+    const OTP_REGEX = /(?:otp|mã\s*xác\s*thực|ma\s*xac\s*thuc|mã\s*bảo\s*mật|verification\s*code|security\s*code|passcode|mã\s*otp|code\s*is|mã\s*kích\s*hoạt)[^0-9]{0,25}([0-9]{4,8})\b/i;
+    const BANK_TX_REGEX = /([+-])\s*([0-9]{1,3}(?:[.,][0-9]{3})+|[0-9]{4,12})\s*(?:vnd|đ|vnđ|d\b)/i;
+    const URL_REGEX = /https?:\/\/[^\s<>"')]+/gi;
+    const PHONE_REGEX = /(?:\+84|0)(?:3[2-9]|5[25689]|7[06-9]|8[1-9]|9[0-9])[0-9]{7}\b/g;
+    const EMAIL_REGEX = /[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/g;
+
+    const MESSAGING_KEYWORDS = [
+      "zalo", "messenger", "orca", "telegram", "whatsapp", "viber",
+      "imessage", "mobilesms", "mms", "sms", "instagram", "threads", "line", "wechat", "skype"
+    ];
+
+    const KNOWN_BANKS = [
+      { key: "vietcombank", name: "Vietcombank", kw: ["vietcombank", "vcb", "vcbdigibank"] },
+      { key: "techcombank", name: "Techcombank", kw: ["techcombank", "tcb"] },
+      { key: "mbbank", name: "MB Bank", kw: ["mbbank", "mb bank", "quân đội", "bdsd mb"] },
+      { key: "acb", name: "ACB", kw: ["acb", "á châu"] },
+      { key: "bidv", name: "BIDV", kw: ["bidv", "smartbanking"] },
+      { key: "vietinbank", name: "VietinBank", kw: ["vietinbank", "ctg", "ipay"] },
+      { key: "vpbank", name: "VPBank", kw: ["vpbank", "vp bank", "neo"] },
+      { key: "tpbank", name: "TPBank", kw: ["tpbank", "tp bank"] },
+      { key: "agribank", name: "Agribank", kw: ["agribank"] },
+      { key: "momo", name: "Ví MoMo", kw: ["momo"] },
+      { key: "zalopay", name: "ZaloPay", kw: ["zalopay"] },
+      { key: "vnpay", name: "VNPay", kw: ["vnpay"] }
+    ];
+
+    function getDisplayBody(item) {
+      if (item.bigText && item.bigText.trim().length > 0 && item.bigText !== item.contentText) {
+        return item.bigText;
+      }
+      if (item.contentText && item.contentText.trim().length > 0) {
+        return item.contentText;
+      }
+      if (Array.isArray(item.inboxLines) && item.inboxLines.length > 0) {
+        return item.inboxLines.join("\n");
+      }
+      return "";
+    }
+
+    function extractOtp(item) {
+      const combined = `${item.title || ""} ${getDisplayBody(item)}`;
+      const match = OTP_REGEX.exec(combined);
+      if (match && match[1] && match[1].length >= 4 && match[1].length <= 8) {
+        return match[1];
+      }
+      return null;
+    }
+
+    function extractBankTransaction(item) {
+      const combined = `${item.title || ""} ${getDisplayBody(item)}`;
+      const match = BANK_TX_REGEX.exec(combined);
+      if (!match) return null;
+      const sign = match[1];
+      const rawDigits = match[2].replace(/[.,\s]/g, "");
+      const amount = parseInt(rawDigits, 10);
+      if (!amount || amount <= 0) return null;
+
+      const lower = `${item.appName || ""} ${item.packageName || ""} ${combined}`.toLowerCase();
+      let bankName = item.appName || "Ngân hàng";
+      for (const b of KNOWN_BANKS) {
+        if (b.kw.some((k) => lower.includes(k))) {
+          bankName = b.name;
+          break;
+        }
+      }
+
+      return {
+        isIncome: sign === "+",
+        amountVnd: amount,
+        bankName
+      };
+    }
+
+    function extractLinksPhonesEmails(item) {
+      const text = `${item.title || ""} ${getDisplayBody(item)}`;
+      const urls = Array.from(new Set(text.match(URL_REGEX) || []));
+      const phones = Array.from(new Set(text.match(PHONE_REGEX) || []));
+      const emails = Array.from(new Set(text.match(EMAIL_REGEX) || []));
+      return { urls, phones, emails, hasAny: urls.length > 0 || phones.length > 0 || emails.length > 0 };
+    }
+
+    function isChatNotification(item) {
+      if (item.hasRemoteInput) return true;
+      const hay = `${item.appName || ""} ${item.packageName || ""}`.toLowerCase();
+      return MESSAGING_KEYWORDS.some((kw) => hay.includes(kw));
+    }
+
+    function hasMedia(item) {
+      return Boolean(
+        (item.pictureB64 && item.pictureB64.length > 20) ||
+        (item.largeIconB64 && item.largeIconB64.length > 200)
+      );
+    }
+
+    function formatVnd(amount, showSign = false) {
+      const absFormatted = Math.abs(Math.round(amount)).toLocaleString("vi-VN");
+      if (!showSign) return `${absFormatted} VND`;
+      if (amount > 0) return `+${absFormatted} VND`;
+      if (amount < 0) return `-${absFormatted} VND`;
+      return "0 VND";
+    }
+
+    function formatDateTime(ts) {
+      const d = new Date(Number(ts) || Date.now());
+      const pad = (n) => String(n).padStart(2, "0");
+      return `${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())} • ${pad(d.getDate())}/${pad(d.getMonth() + 1)}/${d.getFullYear()}`;
+    }
+
+    function formatDateOnly(ts) {
+      const d = new Date(Number(ts) || Date.now());
+      const pad = (n) => String(n).padStart(2, "0");
+      return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+    }
+
+    /*************************************************************************
+     * 3. INDEXEDDB + LOCALSTORAGE OFFLINE PERSISTENCE ENGINE
+     *************************************************************************/
+    function openIdb() {
+      return new Promise((resolve, reject) => {
+        if (!window.indexedDB) {
+          return resolve(null);
+        }
+        const req = indexedDB.open(IDB_NAME, IDB_VERSION);
+        req.onupgradeneeded = (e) => {
+          const db = e.target.result;
+          if (!db.objectStoreNames.contains(IDB_STORE)) {
+            const store = db.createObjectStore(IDB_STORE, { keyPath: "uid" });
+            store.createIndex("time", "time", { unique: false });
+          }
+        };
+        req.onsuccess = () => resolve(req.result);
+        req.onerror = () => resolve(null);
+      });
+    }
+
+    function computeNotificationUid(item) {
+      if (item.uid) return item.uid;
+      const t = item.time || 0;
+      const pkg = item.packageName || item.appName || "app";
+      const title = (item.title || "").slice(0, 40);
+      const body = getDisplayBody(item).slice(0, 60);
+      return `${pkg}_${t}_${title}_${body}`.replace(/\s+/g, "_");
+    }
+
+    function normalizeNotification(raw) {
+      const time = Number(raw.time) || Date.now();
+      const bodyText = raw.contentText || raw.body || "";
+      const bigText = raw.bigText || bodyText;
+      const isRevoked = Boolean(
+        raw.isRevoked ||
+        /thu hồi|đã xóa tin nhắn|unsent a message|removed a message/i.test(`${raw.title || ""} ${bigText}`)
+      );
+
+      const item = {
+        id: Number(raw.id) || time,
+        key: raw.key || `ios_${time}`,
+        notificationId: Number(raw.notificationId) || 0,
+        packageName: raw.packageName || "com.apple.ios",
+        appName: raw.appName || "Ứng dụng",
+        title: raw.title || "(Không tiêu đề)",
+        contentText: bodyText,
+        bigText: bigText,
+        inboxLines: Array.isArray(raw.inboxLines) ? raw.inboxLines : [],
+        time: time,
+        dateStr: raw.dateStr || formatDateOnly(time),
+        isOngoing: Boolean(raw.isOngoing),
+        hasRemoteInput: Boolean(raw.hasRemoteInput),
+        color: Number(raw.color) || 0,
+        smallIconB64: raw.smallIconB64 || "",
+        largeIconB64: raw.largeIconB64 || "",
+        pictureB64: raw.pictureB64 || "",
+        isStarred: Boolean(raw.isStarred),
+        isSynced: raw.isSynced !== undefined ? Boolean(raw.isSynced) : true,
+        isRevoked: isRevoked
+      };
+      item.uid = computeNotificationUid(item);
+      return item;
+    }
+
+    async function loadAllFromLocalDb() {
+      try {
+        const db = await openIdb();
+        if (db) {
+          const items = await new Promise((resolve) => {
+            const tx = db.transaction(IDB_STORE, "readonly");
+            const store = tx.objectStore(IDB_STORE);
+            const req = store.getAll();
+            req.onsuccess = () => resolve(req.result || []);
+            req.onerror = () => resolve([]);
+          });
+          if (items && items.length > 0) {
+            items.sort((a, b) => b.time - a.time);
+            return items;
+          }
+        }
+      } catch (e) {}
+
+      try {
+        const raw = localStorage.getItem(STORAGE_KEYS.FALLBACK_ITEMS);
+        if (raw) {
+          const parsed = JSON.parse(raw);
+          if (Array.isArray(parsed)) {
+            parsed.sort((a, b) => b.time - a.time);
+            return parsed;
+          }
+        }
+      } catch (e) {}
+      return [];
+    }
+
+    async function saveAllToLocalDb(items) {
+      const sorted = [...items].sort((a, b) => b.time - a.time).slice(0, 2000);
+      allNotifications = sorted;
+
+      try {
+        const db = await openIdb();
+        if (db) {
+          await new Promise((resolve) => {
+            const tx = db.transaction(IDB_STORE, "readwrite");
+            const store = tx.objectStore(IDB_STORE);
+            store.clear();
+            for (const item of sorted) {
+              store.put(item);
+            }
+            tx.oncomplete = () => resolve(true);
+            tx.onerror = () => resolve(false);
+          });
+        }
+      } catch (e) {}
+
+      // Fallback lightweight copy in localStorage
+      try {
+        localStorage.setItem(STORAGE_KEYS.FALLBACK_ITEMS, JSON.stringify(sorted.slice(0, 300)));
+      } catch (e) {}
+    }
+
+    async function mergeIncomingNotifications(incomingList, speakNew = false) {
+      if (!Array.isArray(incomingList) || incomingList.length === 0) return 0;
+
+      const map = new Map();
+      for (const existing of allNotifications) {
+        map.set(existing.uid || computeNotificationUid(existing), existing);
+      }
+
+      let addedCount = 0;
+      const newlyArrived = [];
+
+      for (const raw of incomingList) {
+        const norm = normalizeNotification(raw);
+        const existing = map.get(norm.uid);
+        if (!existing) {
+          map.set(norm.uid, norm);
+          addedCount++;
+          newlyArrived.push(norm);
+        } else {
+          // Giữ trạng thái isRevoked hoặc isStarred nếu bản mới được cập nhật
+          if (norm.isRevoked && !existing.isRevoked) {
+            existing.isRevoked = true;
+            newlyArrived.push(existing);
+          }
+          if (norm.pictureB64 && !existing.pictureB64) {
+            existing.pictureB64 = norm.pictureB64;
+          }
+          if (norm.isStarred) {
+            existing.isStarred = true;
+          }
+        }
+      }
+
+      const combined = Array.from(map.values()).sort((a, b) => b.time - a.time);
+      await saveAllToLocalDb(combined);
+      renderApp();
+
+      if (speakNew && newlyArrived.length > 0 && isVoiceEnabled()) {
+        for (const item of newlyArrived.slice(0, 2)) {
+          if (!announcedIds.has(item.uid)) {
+            announcedIds.add(item.uid);
+            announceNotificationIfImportant(item);
+          }
+        }
+      }
+
+      return addedCount;
+    }
+
+    /*************************************************************************
+     * 4. REAL-TIME GOOGLE APPS SCRIPT & GOOGLE DRIVE SYNC (PULL & PUSH)
+     *************************************************************************/
+    function getWebAppUrl() {
+      return (localStorage.getItem(STORAGE_KEYS.WEBAPP_URL) || DEFAULT_WEBAPP_URL).trim();
+    }
+
+    function getDriveFolderId() {
+      return (localStorage.getItem(STORAGE_KEYS.FOLDER_ID) || DEFAULT_DRIVE_FOLDER_ID).trim();
+    }
+
+    function getDeviceName() {
+      return (localStorage.getItem(STORAGE_KEYS.DEVICE_NAME) || "iPhone (NotiStar iOS)").trim();
+    }
+
+    async function syncNow(showToastMsg = false) {
+      if (isSyncing) return;
+      const webAppUrl = getWebAppUrl();
+      if (!webAppUrl) {
+        setSyncStatus("⚠️ Chưa cấu hình URL Google Apps Script", false);
+        return;
+      }
+
+      isSyncing = true;
+      const btn = document.getElementById("btnSyncNow");
+      if (btn) btn.classList.add("spinning");
+      setSyncStatus("🔄 Đang đồng bộ với Google Drive...", true);
+
+      try {
+        const sep = webAppUrl.includes("?") ? "&" : "?";
+        const pullUrl = `${webAppUrl}${sep}action=pull&folderId=${encodeURIComponent(getDriveFolderId())}&_t=${Date.now()}`;
+
+        let rawText = "";
+        try {
+          const res = await fetch(pullUrl, {
+            method: "GET",
+            redirect: "follow"
+          });
+          if (res.ok) {
+            rawText = await res.text();
+          }
+        } catch (getErr) {
+          // Fallback sang POST text/plain (tránh CORS preflight trên Safari iOS)
+        }
+
+        if (!rawText || rawText.trim().startsWith("<")) {
+          const postRes = await fetch(webAppUrl, {
+            method: "POST",
+            headers: { "Content-Type": "text/plain;charset=utf-8" },
+            body: JSON.stringify({
+              action: "pull",
+              folderId: getDriveFolderId()
+            }),
+            redirect: "follow"
+          });
+          if (postRes.ok) {
+            rawText = await postRes.text();
+          }
+        }
+
+        const parsedItems = parseCloudBackupResponse(rawText);
+        const hadExisting = allNotifications.length > 0;
+        const added = await mergeIncomingNotifications(parsedItems, hadExisting);
+
+        const nowStr = new Date().toLocaleTimeString("vi-VN", { hour: "2-digit", minute: "2-digit", second: "2-digit" });
+        setSyncStatus(`☁️ Đã đồng bộ Drive lúc ${nowStr} (${allNotifications.length} mục)`, true);
+        if (showToastMsg) {
+          showToast(added > 0 ? `✅ Đã tải ${added} thông báo mới từ Google Drive!` : `☁️ Dữ liệu đã mới nhất (${allNotifications.length} thông báo)`);
+        }
+      } catch (err) {
+        setSyncStatus(`📴 Chế độ Offline (${allNotifications.length} mục lưu sẵn)`, false);
+        if (showToastMsg) {
+          showToast("⚠️ Không thể kết nối Google Webhook, đang dùng dữ liệu Offline trên iPhone.");
+        }
+      } finally {
+        isSyncing = false;
+        if (btn) btn.classList.remove("spinning");
+      }
+    }
+
+    function parseCloudBackupResponse(rawText) {
+      if (!rawText) return [];
+      const cleaned = rawText.trim().replace(/^\uFEFF/, "");
+      if (!cleaned || cleaned.startsWith("<")) return [];
+      try {
+        const parsed = JSON.parse(cleaned);
+        if (Array.isArray(parsed)) return parsed;
+        if (Array.isArray(parsed.notifications)) return parsed.notifications;
+        if (Array.isArray(parsed.data)) return parsed.data;
+        if (Array.isArray(parsed.items)) return parsed.items;
+      } catch (e) {}
+      return [];
+    }
+
+    async function pushItemsToCloud(itemsToPush, showFeedback = true) {
+      const webAppUrl = getWebAppUrl();
+      if (!webAppUrl || !itemsToPush || itemsToPush.length === 0) return false;
+
+      try {
+        const payload = {
+          action: "sync",
+          device: getDeviceName(),
+          folderId: getDriveFolderId(),
+          exportTime: Date.now(),
+          count: itemsToPush.length,
+          notifications: itemsToPush
+        };
+
+        // Dùng text/plain;charset=utf-8 để Safari iOS không bị chặn bởi CORS OPTIONS preflight khi gọi script.google.com
+        const res = await fetch(webAppUrl, {
+          method: "POST",
+          headers: { "Content-Type": "text/plain;charset=utf-8" },
+          body: JSON.stringify(payload),
+          redirect: "follow"
+        });
+
+        if (res.ok || res.type === "opaque") {
+          if (showFeedback) {
+            showToast(`☁️ Đã đẩy ${itemsToPush.length} thông báo lên Google Drive & Sheets!`);
+          }
+          return true;
+        }
+      } catch (e) {
+        if (showFeedback) {
+          showToast("📥 Đã lưu vào bộ nhớ iPhone (Sẽ đồng bộ khi có mạng)");
+        }
+      }
+      return false;
+    }
+
+    async function pushAllToCloud() {
+      if (allNotifications.length === 0) {
+        showToast("Chưa có thông báo nào để đẩy lên Drive!");
+        return;
+      }
+      showToast("⏳ Đang đẩy toàn bộ dữ liệu lên Google Drive...");
+      await pushItemsToCloud(allNotifications.slice(0, 500), true);
+    }
+
+    function setSyncStatus(text, isOnline) {
+      const el = document.getElementById("syncStatusText");
+      const dot = document.getElementById("liveSyncDot");
+      if (el) el.textContent = text;
+      if (dot) {
+        dot.style.background = isOnline ? "#10B981" : "#F59E0B";
+        dot.style.boxShadow = isOnline ? "0 0 8px #10B981" : "0 0 8px #F59E0B";
+      }
+    }
+
+    /*************************************************************************
+     * 5. VIETNAMESE VOICE ANNOUNCER ("LOA TING-TING" iOS)
+     *************************************************************************/
+    function isVoiceEnabled() {
+      return localStorage.getItem(STORAGE_KEYS.VOICE_ENABLED) !== "0";
+    }
+
+    function toggleVoiceAnnouncer() {
+      const next = !isVoiceEnabled();
+      localStorage.setItem(STORAGE_KEYS.VOICE_ENABLED, next ? "1" : "0");
+      updateToolbarState();
+      if (next) {
+        speakVietnamese("Đã bật loa thông báo tiếng Việt NotiStar Cloud trên iPhone");
+        showToast("🔊 Đã BẬT Loa Ting-Ting đọc thông báo tiếng Việt");
+      } else {
+        if ("speechSynthesis" in window) window.speechSynthesis.cancel();
+        showToast("🔇 Đã TẮT Loa Ting-Ting");
+      }
+    }
+
+    function speakVietnamese(text) {
+      if (!("speechSynthesis" in window)) {
+        showToast("⚠️ Trình duyệt này không hỗ trợ đọc giọng nói");
+        return;
+      }
+      try {
+        window.speechSynthesis.cancel();
+        const utter = new SpeechSynthesisUtterance(text);
+        utter.lang = "vi-VN";
+        utter.rate = 1.02;
+        const voices = window.speechSynthesis.getVoices() || [];
+        const viVoice = voices.find((v) => v.lang && v.lang.toLowerCase().includes("vi"));
+        if (viVoice) utter.voice = viVoice;
+        window.speechSynthesis.speak(utter);
+      } catch (e) {}
+    }
+
+    function announceNotificationIfImportant(item) {
+      const tx = extractBankTransaction(item);
+      if (tx && tx.isIncome) {
+        speakVietnamese(`Ting ting! Biến động số dư ${tx.bankName}: Cộng ${tx.amountVnd.toLocaleString("vi-VN")} đồng.`);
+        return;
+      }
+      if (item.isRevoked) {
+        speakVietnamese(`Cảnh báo! Phát hiện tin nhắn vừa bị thu hồi từ ${item.appName}, người gửi ${item.title}.`);
+      }
+    }
+
+    function testVietnameseVoice() {
+      speakVietnamese("Ting ting! NotiStar Cloud iOS đã kết nối thành công với Google Drive. Sẵn sàng đọc biến động số dư và cảnh báo tin nhắn thu hồi!");
+      showToast("🔊 Đang phát thử giọng đọc Tiếng Việt...");
+    }
+
+    function speakBankingSummary() {
+      const summary = computeBankingSummary();
+      const netText = summary.net >= 0
+        ? `dương ${summary.net.toLocaleString("vi-VN")} đồng`
+        : `âm ${Math.abs(summary.net).toLocaleString("vi-VN")} đồng`;
+      speakVietnamese(
+        `Tổng kết sổ phụ ngân hàng: Tổng tiền vào ${summary.totalIn.toLocaleString("vi-VN")} đồng. Tổng tiền ra ${summary.totalOut.toLocaleString("vi-VN")} đồng. Chênh lệch ròng ${netText}.`
+      );
+    }
+
+    /*************************************************************************
+     * 6. PRIVACY MASK (🙈) & PASSCODE LOCK (🔒)
+     *************************************************************************/
+    function togglePrivacyMask() {
+      const isMasked = document.body.classList.toggle("privacy-masked");
+      localStorage.setItem(STORAGE_KEYS.PRIVACY_MASK, isMasked ? "1" : "0");
+      updateToolbarState();
+      showToast(isMasked ? "🙈 Đã BẬT làm mờ nội dung nhạy cảm (Chạm vào thẻ để xem)" : "👁️ Đã HIỆN rõ toàn bộ nội dung");
+    }
+
+    function handleLockButton() {
+      const savedPin = localStorage.getItem(STORAGE_KEYS.PIN_CODE) || "";
+      if (!savedPin) {
+        configurePinCode();
+      } else {
+        lockAppNow();
+      }
+    }
+
+    function lockAppNow() {
+      enteredPin = "";
+      pinSetupMode = false;
+      updatePinDots();
+      document.getElementById("lockSubtext").textContent = "Nhập mã PIN 4 số để mở khóa kho thông báo iOS";
+      document.getElementById("lockOverlay").classList.add("locked");
+    }
+
+    function configurePinCode() {
+      closeModal("cloudModal");
+      enteredPin = "";
+      pinSetupMode = true;
+      updatePinDots();
+      document.getElementById("lockSubtext").textContent = "Nhập mã PIN 4 số MỚI để cài đặt khóa bảo vệ (Nhấn Xóa để gỡ PIN)";
+      document.getElementById("lockOverlay").classList.add("locked");
+    }
+
+    function pressPinKey(digit) {
+      if (enteredPin.length >= 4) return;
+      enteredPin += digit;
+      updatePinDots();
+
+      if (enteredPin.length === 4) {
+        setTimeout(() => {
+          if (pinSetupMode) {
+            localStorage.setItem(STORAGE_KEYS.PIN_CODE, enteredPin);
+            document.getElementById("lockOverlay").classList.remove("locked");
+            pinSetupMode = false;
+            enteredPin = "";
+            updateToolbarState();
+            showToast("🔒 Đã lưu mã PIN 4 số bảo vệ NotiStar Cloud!");
+          } else {
+            const savedPin = localStorage.getItem(STORAGE_KEYS.PIN_CODE) || "";
+            if (enteredPin === savedPin) {
+              document.getElementById("lockOverlay").classList.remove("locked");
+              enteredPin = "";
+              updatePinDots();
+            } else {
+              enteredPin = "";
+              updatePinDots();
+              document.getElementById("lockSubtext").textContent = "❌ Mã PIN không đúng, vui lòng thử lại!";
+            }
+          }
+        }, 120);
+      }
+    }
+
+    function backspacePin() {
+      enteredPin = enteredPin.slice(0, -1);
+      updatePinDots();
+    }
+
+    function clearPinInput() {
+      if (pinSetupMode) {
+        localStorage.removeItem(STORAGE_KEYS.PIN_CODE);
+        document.getElementById("lockOverlay").classList.remove("locked");
+        pinSetupMode = false;
+        enteredPin = "";
+        updateToolbarState();
+        showToast("🔓 Đã gỡ khóa mã PIN!");
+        return;
+      }
+      enteredPin = "";
+      updatePinDots();
+    }
+
+    function updatePinDots() {
+      for (let i = 0; i < 4; i++) {
+        const dot = document.getElementById(`pinDot${i}`);
+        if (dot) {
+          dot.classList.toggle("filled", i < enteredPin.length);
+        }
+      }
+    }
+
+    /*************************************************************************
+     * 7. RENDERING UI, FILTER TABS & SMART BANKING LEDGER
+     *************************************************************************/
+    function computeBankingSummary() {
+      let totalIn = 0;
+      let totalOut = 0;
+      const perBank = {};
+      const bankItems = [];
+
+      for (const item of allNotifications) {
+        const tx = extractBankTransaction(item);
+        if (!tx) continue;
+        bankItems.push({ item, tx });
+        if (tx.isIncome) {
+          totalIn += tx.amountVnd;
+        } else {
+          totalOut += tx.amountVnd;
+        }
+        if (!perBank[tx.bankName]) {
+          perBank[tx.bankName] = { in: 0, out: 0, count: 0 };
+        }
+        perBank[tx.bankName].count++;
+        if (tx.isIncome) perBank[tx.bankName].in += tx.amountVnd;
+        else perBank[tx.bankName].out += tx.amountVnd;
+      }
+
+      return {
+        totalIn,
+        totalOut,
+        net: totalIn - totalOut,
+        perBank,
+        bankItems
+      };
+    }
+
+    function switchTab(tab) {
+      currentTab = tab;
+      document.querySelectorAll(".tab-pill").forEach((btn) => {
+        btn.classList.toggle("active", btn.getAttribute("data-tab") === tab);
+      });
+      document.getElementById("dockAll")?.classList.toggle("active", tab === "all");
+      document.getElementById("dockRevoked")?.classList.toggle("active", tab === "revoked");
+      document.getElementById("dockBank")?.classList.toggle("active", tab === "bank");
+      renderApp();
+    }
+
+    function selectBankSubFilter(bankName) {
+      currentBankFilter = bankName;
+      renderApp();
+    }
+
+    function onSearchChange() {
+      const input = document.getElementById("searchInput");
+      searchQuery = (input?.value || "").trim().toLowerCase();
+      const clearBtn = document.getElementById("clearSearchBtn");
+      if (clearBtn) clearBtn.style.display = searchQuery.length > 0 ? "block" : "none";
+      renderApp();
+    }
+
+    function clearSearch() {
+      const input = document.getElementById("searchInput");
+      if (input) input.value = "";
+      searchQuery = "";
+      const clearBtn = document.getElementById("clearSearchBtn");
+      if (clearBtn) clearBtn.style.display = "none";
+      renderApp();
+    }
+
+    function renderApp() {
+      // 1. Tính toán số lượng cho 7 Tab & Bento Stats
+      const chatList = allNotifications.filter(isChatNotification);
+      const revokedList = allNotifications.filter((n) => n.isRevoked);
+      const starredList = allNotifications.filter((n) => n.isStarred);
+      const mediaList = allNotifications.filter(hasMedia);
+      const bankSummary = computeBankingSummary();
+      const linksList = allNotifications.filter((n) => extractLinksPhonesEmails(n).hasAny);
+
+      setText("countAll", allNotifications.length);
+      setText("countChat", chatList.length);
+      setText("countRevoked", revokedList.length);
+      setText("countStarred", starredList.length);
+      setText("countMedia", mediaList.length);
+      setText("countBank", bankSummary.bankItems.length);
+      setText("countLinks", linksList.length);
+
+      setText("statTotal", allNotifications.length);
+      setText("statRevoked", revokedList.length);
+      setText("statMedia", mediaList.length);
+      setText("statBankTx", bankSummary.bankItems.length);
+
+      // 2. Hiển thị Sổ phụ Ngân hàng khi ở tab Ngân hàng (hoặc khi có giao dịch và ở tab bank)
+      const bankPanel = document.getElementById("bankingLedgerPanel");
+      if (bankPanel) {
+        const showBankPanel = currentTab === "bank" || (currentTab === "all" && bankSummary.bankItems.length > 0);
+        bankPanel.classList.toggle("visible", showBankPanel);
+        setText("bankTotalIn", formatVnd(bankSummary.totalIn, true));
+        setText("bankTotalOut", formatVnd(-bankSummary.totalOut, true));
+        setText("bankNetChange", formatVnd(bankSummary.net, true));
+
+        const chipsContainer = document.getElementById("bankBreakdownRow");
+        if (chipsContainer) {
+          const bankNames = Object.keys(bankSummary.perBank);
+          let chipsHtml = `<span class="bank-chip ${currentBankFilter === "ALL" ? "active" : ""}" onclick="selectBankSubFilter('ALL')">Tất cả NH (${bankSummary.bankItems.length})</span>`;
+          for (const bName of bankNames) {
+            const info = bankSummary.perBank[bName];
+            const netB = info.in - info.out;
+            chipsHtml += `<span class="bank-chip ${currentBankFilter === bName ? "active" : ""}" onclick="selectBankSubFilter('${escapeAttr(bName)}')">${escapeHtml(bName)} (${info.count}) • ${formatVnd(netB, true)}</span>`;
+          }
+          chipsContainer.innerHTML = chipsHtml;
+        }
+      }
+
+      // 3. Lọc danh sách theo Tab + Tìm kiếm
+      let filtered = allNotifications;
+      if (currentTab === "chat") filtered = chatList;
+      else if (currentTab === "revoked") filtered = revokedList;
+      else if (currentTab === "starred") filtered = starredList;
+      else if (currentTab === "media") filtered = mediaList;
+      else if (currentTab === "bank") {
+        filtered = bankSummary.bankItems
+          .filter((entry) => currentBankFilter === "ALL" || entry.tx.bankName === currentBankFilter)
+          .map((entry) => entry.item);
+      } else if (currentTab === "links") {
+        filtered = linksList;
+      }
+
+      if (searchQuery) {
+        filtered = filtered.filter((item) => {
+          const hay = `${item.appName} ${item.packageName} ${item.title} ${getDisplayBody(item)} ${item.dateStr}`.toLowerCase();
+          return hay.includes(searchQuery);
+        });
+      }
+
+      // 4. Render danh sách thẻ thông báo
+      const container = document.getElementById("notiListContainer");
+      if (!container) return;
+
+      if (filtered.length === 0) {
+        container.innerHTML = `
+          <div class="empty-state">
+            <div style="font-size:38px;margin-bottom:10px;">📭</div>
+            <div style="font-size:15px;font-weight:700;color:var(--text-primary);margin-bottom:6px;">
+              Chưa có thông báo nào trong mục này
+            </div>
+            <div style="font-size:12.5px;margin-bottom:16px;">
+              Nhấn <strong>🔄 Đồng bộ</strong> để kéo dữ liệu từ Google Drive hoặc nạp dữ liệu mẫu để trải nghiệm ngay.
+            </div>
+            <div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap;">
+              <button class="btn btn-primary" style="flex:0 0 auto;" onclick="syncNow(true)">🔄 Đồng bộ Google Drive</button>
+              <button class="btn" style="flex:0 0 auto;" onclick="seedSampleDataIfNeeded(true)">✨ Nạp thông báo mẫu</button>
+            </div>
+          </div>
+        `;
+        return;
+      }
+
+      const htmlParts = [];
+      for (const item of filtered.slice(0, 300)) {
+        htmlParts.push(renderNotificationCardHtml(item));
+      }
+      container.innerHTML = htmlParts.join("");
+    }
+
+    function renderNotificationCardHtml(item) {
+      const body = getDisplayBody(item);
+      const otp = extractOtp(item);
+      const tx = extractBankTransaction(item);
+      const extracted = extractLinksPhonesEmails(item);
+      const isChat = isChatNotification(item);
+
+      // Icon hiển thị
+      let iconInner = "🔔";
+      if (item.largeIconB64 && item.largeIconB64.length > 50) {
+        iconInner = `<img src="data:image/png;base64,${item.largeIconB64}" alt="icon" />`;
+      } else if (item.smallIconB64 && item.smallIconB64.length > 50) {
+        iconInner = `<img src="data:image/png;base64,${item.smallIconB64}" alt="icon" />`;
+      } else if (/zalo/i.test(item.appName + item.packageName)) {
+        iconInner = `<span style="color:#60A5FA;">Z</span>`;
+      } else if (/messenger|orca/i.test(item.appName + item.packageName)) {
+        iconInner = "💬";
+      } else if (/telegram/i.test(item.appName + item.packageName)) {
+        iconInner = "✈️";
+      } else if (tx) {
+        iconInner = "🏦";
+      }
+
+      // Badges
+      const badges = [];
+      if (isChat) badges.push(`<span class="pill-badge badge-chat">💬 Tin nhắn</span>`);
+      if (tx) {
+        badges.push(
+          tx.isIncome
+            ? `<span class="pill-badge badge-bank-in">🏦 ${escapeHtml(tx.bankName)} ${formatVnd(tx.amountVnd, true)}</span>`
+            : `<span class="pill-badge badge-bank-out">🏦 ${escapeHtml(tx.bankName)} ${formatVnd(-tx.amountVnd, true)}</span>`
+        );
+      }
+      if (item.isSynced) {
+        badges.push(`<span class="pill-badge badge-cloud">☁️ Drive</span>`);
+      }
+
+      // Media Picture
+      let mediaHtml = "";
+      if (item.pictureB64 && item.pictureB64.length > 20) {
+        const src = item.pictureB64.startsWith("data:")
+          ? item.pictureB64
+          : `data:image/jpeg;base64,${item.pictureB64}`;
+        mediaHtml = `
+          <div class="card-media-wrap">
+            <img class="card-media-img" src="${src}" alt="Ảnh đính kèm" onclick="openLightbox('${escapeAttr(src)}')" />
+          </div>
+        `;
+      }
+
+      // Smart Action Chips (OTP 1-Tap Copy, Phone Call tel:, Open URL, Speak, Copy Body)
+      const chips = [];
+      if (otp) {
+        chips.push(`
+          <button class="otp-copy-btn" onclick="copyTextToClipboard('${escapeAttr(otp)}', 'Đã copy mã OTP: ${escapeAttr(otp)}')">
+            📋 Copy mã OTP: ${escapeHtml(otp)}
+          </button>
+        `);
+      }
+
+      for (const phone of extracted.phones) {
+        chips.push(`
+          <a class="smart-chip chip-phone" href="tel:${escapeAttr(phone)}">
+            📞 Gọi ${escapeHtml(phone)}
+          </a>
+        `);
+      }
+
+      for (const url of extracted.urls.slice(0, 3)) {
+        let shortHost = url;
+        try { shortHost = new URL(url).hostname; } catch (e) {}
+        chips.push(`
+          <a class="smart-chip chip-link" href="${escapeAttr(url)}" target="_blank" rel="noopener">
+            🔗 Mở ${escapeHtml(shortHost)}
+          </a>
+        `);
+      }
+
+      for (const email of extracted.emails.slice(0, 2)) {
+        chips.push(`
+          <a class="smart-chip chip-link" href="mailto:${escapeAttr(email)}">
+            ✉️ ${escapeHtml(email)}
+          </a>
+        `);
+      }
+
+      chips.push(`
+        <button class="smart-chip" onclick="copyNotificationByUid('${escapeAttr(item.uid)}')">
+          📄 Sao chép
+        </button>
+      `);
+
+      chips.push(`
+        <button class="smart-chip" onclick="speakNotificationByUid('${escapeAttr(item.uid)}')">
+          🔊 Đọc
+        </button>
+      `);
+
+      return `
+        <article class="noti-card ${item.isRevoked ? "revoked" : ""}">
+          ${item.isRevoked ? `<div class="revoked-ribbon">🚫 ĐÃ THU HỒI - ĐÃ GIỮ LẠI NỘI DUNG GỐC</div>` : ""}
+          <div class="card-top">
+            <div class="app-icon-box">${iconInner}</div>
+            <div class="card-meta">
+              <span class="app-name-tag">${escapeHtml(item.appName)}</span>
+              ${badges.join(" ")}
+            </div>
+            <span class="card-time">${formatDateTime(item.time)}</span>
+            <button class="star-btn ${item.isStarred ? "starred" : ""}" onclick="toggleStarByUid('${escapeAttr(item.uid)}')" title="Đánh dấu sao">
+              ${item.isStarred ? "★" : "☆"}
+            </button>
+          </div>
+          <div class="card-title selectable">${escapeHtml(item.title)}</div>
+          <div class="card-body selectable">${escapeHtml(body)}</div>
+          ${mediaHtml}
+          <div class="smart-actions-bar">
+            ${chips.join("")}
+          </div>
+        </article>
+      `;
+    }
+
+    /*************************************************************************
+     * 8. USER INTERACTIONS (STAR, COPY, SPEAK, LIGHTBOX, CAPTURE, EXPORT/IMPORT)
+     *************************************************************************/
+    async function toggleStarByUid(uid) {
+      const target = allNotifications.find((n) => n.uid === uid);
+      if (!target) return;
+      target.isStarred = !target.isStarred;
+      await saveAllToLocalDb(allNotifications);
+      renderApp();
+      showToast(target.isStarred ? "⭐ Đã ghim thông báo quan trọng" : "Đã bỏ ghim");
+    }
+
+    function copyNotificationByUid(uid) {
+      const target = allNotifications.find((n) => n.uid === uid);
+      if (!target) return;
+      const text = `[${target.appName}] ${target.title}\n${getDisplayBody(target)}`;
+      copyTextToClipboard(text, "📋 Đã sao chép nội dung thông báo vào iPhone!");
+    }
+
+    function speakNotificationByUid(uid) {
+      const target = allNotifications.find((n) => n.uid === uid);
+      if (!target) return;
+      speakVietnamese(`Thông báo từ ${target.appName}. ${target.title}. ${getDisplayBody(target)}`);
+    }
+
+    async function copyTextToClipboard(text, successMsg = "📋 Đã sao chép!") {
+      try {
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          await navigator.clipboard.writeText(text);
+          showToast(successMsg);
+          return;
+        }
+      } catch (e) {}
+
+      // Fallback cho Safari iOS
+      const ta = document.createElement("textarea");
+      ta.value = text;
+      ta.style.position = "fixed";
+      ta.style.opacity = "0";
+      document.body.appendChild(ta);
+      ta.focus();
+      ta.select();
+      try { document.execCommand("copy"); } catch (e) {}
+      document.body.removeChild(ta);
+      showToast(successMsg);
+    }
+
+    function openLightbox(src) {
+      const overlay = document.getElementById("lightboxOverlay");
+      const img = document.getElementById("lightboxImg");
+      const dl = document.getElementById("lightboxDownloadBtn");
+      if (img) img.src = src;
+      if (dl) dl.href = src;
+      if (overlay) overlay.classList.add("open");
+    }
+
+    function closeLightbox() {
+      const overlay = document.getElementById("lightboxOverlay");
+      if (overlay) overlay.classList.remove("open");
+    }
+
+    // Quick Capture / Clipboard Vault on iPhone
+    async function pasteFromIosClipboard() {
+      try {
+        if (navigator.clipboard && navigator.clipboard.readText) {
+          const clipText = await navigator.clipboard.readText();
+          if (clipText && clipText.trim()) {
+            document.getElementById("capBodyInput").value = clipText.trim();
+            if (!document.getElementById("capTitleInput").value) {
+              document.getElementById("capTitleInput").value = "Lưu từ Clipboard iPhone";
+            }
+            showToast("📋 Đã dán nội dung từ Clipboard iPhone!");
+            return;
+          }
+        }
+      } catch (e) {}
+      document.getElementById("capBodyInput").focus();
+      showToast("💡 Hãy chạm giữ vào ô nội dung và chọn 'Dán' (Paste)");
+    }
+
+    function handleCapturePhotoSelect(event) {
+      const file = event.target.files && event.target.files[0];
+      if (!file) {
+        pendingCapturePhotoB64 = "";
+        return;
+      }
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const dataUrl = String(e.target.result || "");
+        const commaIdx = dataUrl.indexOf(",");
+        pendingCapturePhotoB64 = commaIdx >= 0 ? dataUrl.slice(commaIdx + 1) : dataUrl;
+        const preview = document.getElementById("capPhotoPreview");
+        const wrap = document.getElementById("capPhotoPreviewWrap");
+        if (preview) preview.src = dataUrl;
+        if (wrap) wrap.style.display = "block";
+      };
+      reader.readAsDataURL(file);
+    }
+
+    async function saveCapturedNotification(syncToDrive = true) {
+      const appVal = document.getElementById("capAppSelect").value || "Ghi chú|com.notistar.note";
+      const [appName, packageName] = appVal.split("|");
+      const title = document.getElementById("capTitleInput").value.trim() || appName;
+      const body = document.getElementById("capBodyInput").value.trim();
+      const isRevoked = document.getElementById("capRevokedCheck").checked;
+      const isStarred = document.getElementById("capStarredCheck").checked;
+
+      if (!body && !pendingCapturePhotoB64) {
+        showToast("⚠️ Vui lòng nhập nội dung hoặc chọn ảnh đính kèm!");
+        return;
+      }
+
+      const now = Date.now();
+      const newItem = normalizeNotification({
+        id: now,
+        key: `ios_capture_${now}`,
+        packageName: packageName || "com.apple.ios",
+        appName: appName || "iPhone",
+        title: title,
+        contentText: body,
+        bigText: body,
+        time: now,
+        dateStr: formatDateOnly(now),
+        hasRemoteInput: isChatNotification({ appName, packageName }),
+        pictureB64: pendingCapturePhotoB64,
+        isStarred: isStarred,
+        isRevoked: isRevoked,
+        isSynced: true
+      });
+
+      await mergeIncomingNotifications([newItem], false);
+
+      // Reset form
+      document.getElementById("capTitleInput").value = "";
+      document.getElementById("capBodyInput").value = "";
+      document.getElementById("capRevokedCheck").checked = false;
+      document.getElementById("capStarredCheck").checked = false;
+      document.getElementById("capPhotoInput").value = "";
+      document.getElementById("capPhotoPreviewWrap").style.display = "none";
+      pendingCapturePhotoB64 = "";
+      closeModal("captureModal");
+
+      if (syncToDrive) {
+        await pushItemsToCloud([newItem], true);
+      } else {
+        showToast("✅ Đã lưu vào kho thông báo iPhone!");
+      }
+    }
+
+    // Export / Import JSON & CSV
+    function exportBackupJson() {
+      const backupObj = {
+        app: "NotiStarCloud",
+        version: 1,
+        device: getDeviceName(),
+        exportTime: Date.now(),
+        exportDate: new Date().toISOString(),
+        count: allNotifications.length,
+        notifications: allNotifications
+      };
+      const blob = new Blob([JSON.stringify(backupObj, null, 2)], { type: "application/json;charset=utf-8" });
+      triggerFileDownload(blob, "notistar_cloud_backup.json");
+      showToast(`⬇️ Đã xuất ${allNotifications.length} thông báo ra tệp .JSON`);
+    }
+
+    function exportBackupCsv() {
+      const esc = (v) => `"${String(v || "").replace(/\r?\n/g, " ").replace(/"/g, '""')}"`;
+      let csv = "\uFEFFID,Thời gian,Ngày,Tên ứng dụng,Gói ứng dụng (Package),Tiêu đề,Nội dung chi tiết,Thu hồi,Đã ghim (Star)\r\n";
+      for (const n of allNotifications) {
+        csv += [
+          n.id,
+          esc(formatDateTime(n.time)),
+          esc(n.dateStr),
+          esc(n.appName),
+          esc(n.packageName),
+          esc(n.title),
+          esc(getDisplayBody(n)),
+          esc(n.isRevoked ? "Đã thu hồi" : "Bình thường"),
+          esc(n.isStarred ? "Có" : "Không")
+        ].join(",") + "\r\n";
+      }
+      const blob = new Blob([csv], { type: "text/csv;charset=utf-8" });
+      triggerFileDownload(blob, "notistar_cloud_history.csv");
+      showToast(`📊 Đã xuất ${allNotifications.length} dòng ra tệp Excel .CSV`);
+    }
+
+    function triggerFileDownload(blob, filename) {
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      setTimeout(() => URL.revokeObjectURL(url), 2000);
+    }
+
+    function importBackupJsonFile(event) {
+      const file = event.target.files && event.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = async (e) => {
+        const text = String(e.target.result || "");
+        const items = parseCloudBackupResponse(text);
+        if (items.length === 0) {
+          showToast("⚠️ Tệp JSON không hợp lệ hoặc trống!");
+          return;
+        }
+        const added = await mergeIncomingNotifications(items, false);
+        closeModal("cloudModal");
+        showToast(`✅ Đã nhập ${added} thông báo mới (tổng ${items.length} trong tệp)!`);
+      };
+      reader.readAsText(file, "UTF-8");
+    }
+
+    /*************************************************************************
+     * 9. CLOUD SETTINGS & SHORTCUT URL SCHEME HANDLER (?capture=1&...)
+     *************************************************************************/
+    function loadSettingsToForm() {
+      document.getElementById("cfgWebAppUrl").value = getWebAppUrl();
+      document.getElementById("cfgDriveFolderId").value = getDriveFolderId();
+      document.getElementById("cfgDeviceName").value = getDeviceName();
+      document.getElementById("cfgAutoPollSec").value = localStorage.getItem(STORAGE_KEYS.AUTO_POLL_SEC) || "30";
+      document.getElementById("openDriveFolderLink").href = `https://drive.google.com/drive/folders/${encodeURIComponent(getDriveFolderId())}`;
+      document.getElementById("shortcutUrlBox").textContent = getWebAppUrl();
+    }
+
+    function saveCloudConfigAndSync() {
+      const url = document.getElementById("cfgWebAppUrl").value.trim() || DEFAULT_WEBAPP_URL;
+      const folderId = document.getElementById("cfgDriveFolderId").value.trim() || DEFAULT_DRIVE_FOLDER_ID;
+      const devName = document.getElementById("cfgDeviceName").value.trim() || "iPhone (NotiStar iOS)";
+      const pollSec = document.getElementById("cfgAutoPollSec").value || "30";
+
+      localStorage.setItem(STORAGE_KEYS.WEBAPP_URL, url);
+      localStorage.setItem(STORAGE_KEYS.FOLDER_ID, folderId);
+      localStorage.setItem(STORAGE_KEYS.DEVICE_NAME, devName);
+      localStorage.setItem(STORAGE_KEYS.AUTO_POLL_SEC, pollSec);
+
+      loadSettingsToForm();
+      setupAutoPolling();
+      closeModal("cloudModal");
+      syncNow(true);
+    }
+
+    function resetDefaultCloudConfig() {
+      localStorage.setItem(STORAGE_KEYS.WEBAPP_URL, DEFAULT_WEBAPP_URL);
+      localStorage.setItem(STORAGE_KEYS.FOLDER_ID, DEFAULT_DRIVE_FOLDER_ID);
+      loadSettingsToForm();
+      showToast("♻️ Đã khôi phục URL & Folder ID mặc định!");
+    }
+
+    async function clearLocalDatabase() {
+      await saveAllToLocalDb([]);
+      renderApp();
+      closeModal("cloudModal");
+      showToast("🗑️ Đã xóa bộ nhớ đệm trên máy (Nhấn 🔄 để kéo lại từ Drive)");
+    }
+
+    function copyShortcutWebhookTemplate() {
+      copyTextToClipboard(getWebAppUrl(), "📋 Đã sao chép URL Webhook Google Apps Script!");
+    }
+
+    function setupAutoPolling() {
+      if (pollTimer) clearInterval(pollTimer);
+      const sec = parseInt(localStorage.getItem(STORAGE_KEYS.AUTO_POLL_SEC) || "30", 10);
+      if (sec > 0) {
+        pollTimer = setInterval(() => {
+          if (!document.hidden) {
+            syncNow(false);
+          }
+        }, sec * 1000);
+      }
+    }
+
+    async function handleUrlQueryActions() {
+      const params = new URLSearchParams(window.location.search);
+      const tabParam = params.get("tab");
+      if (tabParam && ["all", "chat", "revoked", "starred", "media", "bank", "links"].includes(tabParam)) {
+        switchTab(tabParam);
+      }
+
+      // Hỗ trợ iOS Shortcut URL Scheme: ?capture=1&app=Zalo&title=Nguyen+Van+A&body=Noi+dung&revoked=1
+      if (params.get("capture") === "1") {
+        const app = params.get("app") || "Phím tắt iPhone";
+        const title = params.get("title") || "";
+        const body = params.get("body") || params.get("text") || "";
+        const revoked = params.get("revoked") === "1" || params.get("revoked") === "true";
+
+        if (body || title) {
+          const now = Date.now();
+          const item = normalizeNotification({
+            id: now,
+            key: `ios_shortcut_${now}`,
+            packageName: "com.apple.shortcuts",
+            appName: app,
+            title: title || app,
+            contentText: body,
+            bigText: body,
+            time: now,
+            dateStr: formatDateOnly(now),
+            isRevoked: revoked,
+            isSynced: true
+          });
+          await mergeIncomingNotifications([item], true);
+          await pushItemsToCloud([item], true);
+          // Xóa query param để không tạo trùng khi F5
+          if (window.history && window.history.replaceState) {
+            window.history.replaceState({}, document.title, window.location.pathname);
+          }
+        } else {
+          openModal("captureModal");
+        }
+      }
+    }
+
+    /*************************************************************************
+     * 10. SAMPLE DEMO SEEDER & DYNAMIC APPLE TOUCH ICON GENERATOR
+     *************************************************************************/
+    function generateTinyDemoPhotoB64() {
+      try {
+        const c = document.createElement("canvas");
+        c.width = 360;
+        c.height = 200;
+        const ctx = c.getContext("2d");
+        const grad = ctx.createLinearGradient(0, 0, 360, 200);
+        grad.addColorStop(0, "#1E3A8A");
+        grad.addColorStop(1, "#581C87");
+        ctx.fillStyle = grad;
+        ctx.fillRect(0, 0, 360, 200);
+        ctx.fillStyle = "#FFFFFF";
+        ctx.font = "bold 18px -apple-system, sans-serif";
+        ctx.fillText("📸 Ảnh đính kèm đã giữ lại", 24, 85);
+        ctx.font = "14px -apple-system, sans-serif";
+        ctx.fillStyle = "#93C5FD";
+        ctx.fillText("NotiStar Cloud Anti-Revoke Vault", 24, 118);
+        return c.toDataURL("image/jpeg", 0.82).split(",")[1];
+      } catch (e) {
+        return "";
+      }
+    }
+
+    async function seedSampleDataIfNeeded(force = false) {
+      if (!force && allNotifications.length > 0) return;
+      const now = Date.now();
+      const demoPhoto = generateTinyDemoPhotoB64();
+      const samples = [
+        {
+          id: now - 30000,
+          key: "demo_zalo_revoked",
+          packageName: "com.zing.zalo",
+          appName: "Zalo",
+          title: "Trần Minh Hoàng (Zalo)",
+          contentText: "Anh gửi nhầm bảng báo giá dự án mật nhé, chút anh thu hồi lại ảnh này! SĐT liên hệ: 0912345678 - Link tài liệu: https://drive.google.com/drive/folders/1LoHXambgX8-b_mbUfBYHvYqQTZA6k0IU",
+          bigText: "Anh gửi nhầm bảng báo giá dự án mật nhé, chút anh thu hồi lại ảnh này! SĐT liên hệ: 0912345678 - Link tài liệu: https://drive.google.com/drive/folders/1LoHXambgX8-b_mbUfBYHvYqQTZA6k0IU",
+          time: now - 30000,
+          hasRemoteInput: true,
+          isRevoked: true,
+          isStarred: true,
+          pictureB64: demoPhoto
+        },
+        {
+          id: now - 120000,
+          key: "demo_vcb_income",
+          packageName: "com.VCB",
+          appName: "VCB Digibank",
+          title: "Thông báo biến động số dư Vietcombank",
+          contentText: "Số dư TK VCB 001100998877 thay đổi +12,500,000 VND lúc 14:20. SD hiện tại: 68,450,000 VND. ND: NGUYEN VAN A chuyen khoan thanh toan hop dong.",
+          bigText: "Số dư TK VCB 001100998877 thay đổi +12,500,000 VND lúc 14:20. SD hiện tại: 68,450,000 VND. ND: NGUYEN VAN A chuyen khoan thanh toan hop dong.",
+          time: now - 120000,
+          isStarred: true
+        },
+        {
+          id: now - 240000,
+          key: "demo_mbbank_out",
+          packageName: "com.mbmobile",
+          appName: "MB Bank",
+          title: "Biến động số dư MB Bank",
+          contentText: "TK 888866669999 GD: -1,850,000 VND. Nội dung: Thanh toan hoa don Apple Store Vietnam.",
+          bigText: "TK 888866669999 GD: -1,850,000 VND. Nội dung: Thanh toan hoa don Apple Store Vietnam.",
+          time: now - 240000
+        },
+        {
+          id: now - 360000,
+          key: "demo_otp_sms",
+          packageName: "com.apple.MobileSMS",
+          appName: "Tin nhắn SMS",
+          title: "SmartOTP Vietcombank",
+          contentText: "Mã xác thực OTP của quý khách là 482910. Tuyệt đối không chia sẻ mã OTP này cho bất kỳ ai. Hỗ trợ: support@vietcombank.com.vn",
+          bigText: "Mã xác thực OTP của quý khách là 482910. Tuyệt đối không chia sẻ mã OTP này cho bất kỳ ai. Hỗ trợ: support@vietcombank.com.vn",
+          time: now - 360000
+        }
+      ];
+
+      await mergeIncomingNotifications(samples, false);
+      closeModal("iosGuideModal");
+      if (force) {
+        showToast("✨ Đã nạp 4 thông báo mẫu (Zalo Thu hồi + Ảnh, Ngân hàng, OTP, SĐT)!");
+      }
+    }
+
+    function generateCrispAppleTouchIcon() {
+      try {
+        const canvas = document.createElement("canvas");
+        canvas.width = 180;
+        canvas.height = 180;
+        const ctx = canvas.getContext("2d");
+
+        const grad = ctx.createLinearGradient(0, 0, 180, 180);
+        grad.addColorStop(0, "#2563EB");
+        grad.addColorStop(0.5, "#4F46E5");
+        grad.addColorStop(1, "#9333EA");
+        ctx.fillStyle = grad;
+        ctx.fillRect(0, 0, 180, 180);
+
+        // Chuông thông báo trắng
+        ctx.fillStyle = "#FFFFFF";
+        ctx.beginPath();
+        ctx.arc(90, 82, 36, Math.PI, 0, false);
+        ctx.lineTo(126, 114);
+        ctx.lineTo(138, 128);
+        ctx.lineTo(42, 128);
+        ctx.lineTo(54, 114);
+        ctx.closePath();
+        ctx.fill();
+
+        ctx.beginPath();
+        ctx.arc(90, 138, 14, 0, Math.PI, false);
+        ctx.fill();
+
+        // Chấm đỏ ngôi sao góc trên phải
+        ctx.fillStyle = "#EF4444";
+        ctx.beginPath();
+        ctx.arc(130, 52, 20, 0, Math.PI * 2);
+        ctx.fill();
+
+        const pngUrl = canvas.toDataURL("image/png");
+        const link = document.getElementById("appleTouchIcon");
+        if (link) link.href = pngUrl;
+      } catch (e) {}
+    }
+
+    /*************************************************************************
+     * 11. MODAL, TOOLBAR & UTILITIES
+     *************************************************************************/
+    function openModal(id) {
+      if (id === "cloudModal" || id === "iosGuideModal") {
+        loadSettingsToForm();
+      }
+      const el = document.getElementById(id);
+      if (el) el.classList.add("open");
+    }
+
+    function closeModal(id) {
+      const el = document.getElementById(id);
+      if (el) el.classList.remove("open");
+    }
+
+    function closeModalOnBackdrop(event, id) {
+      if (event.target && event.target.id === id) {
+        closeModal(id);
+      }
+    }
+
+    function updateToolbarState() {
+      const voiceBtn = document.getElementById("btnVoiceToggle");
+      const voiceIcon = document.getElementById("voiceIconSpan");
+      if (voiceBtn && voiceIcon) {
+        const on = isVoiceEnabled();
+        voiceBtn.classList.toggle("active", on);
+        voiceIcon.textContent = on ? "🔊" : "🔇";
+      }
+
+      const maskBtn = document.getElementById("btnPrivacyMask");
+      if (maskBtn) {
+        maskBtn.classList.toggle("active", document.body.classList.contains("privacy-masked"));
+      }
+
+      const lockBtn = document.getElementById("btnLockApp");
+      if (lockBtn) {
+        lockBtn.classList.toggle("active", Boolean(localStorage.getItem(STORAGE_KEYS.PIN_CODE)));
+      }
+    }
+
+    let toastTimeout = null;
+    function showToast(msg) {
+      const box = document.getElementById("toastBox");
+      if (!box) return;
+      box.textContent = msg;
+      box.classList.add("show");
+      if (toastTimeout) clearTimeout(toastTimeout);
+      toastTimeout = setTimeout(() => {
+        box.classList.remove("show");
+      }, 2800);
+    }
+
+    function setText(id, val) {
+      const el = document.getElementById(id);
+      if (el) el.textContent = String(val);
+    }
+
+    function escapeHtml(str) {
+      return String(str || "")
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;");
+    }
+
+    function escapeAttr(str) {
+      return String(str || "")
+        .replace(/\\/g, "\\\\")
+        .replace(/'/g, "\\'")
+        .replace(/"/g, "&quot;");
+    }
+
+    /*************************************************************************
+     * 12. APP BOOTSTRAP (SERVICE WORKER, PRELOADED DATA, AUTO-SYNC)
+     *************************************************************************/
+    async function initNotiStarIosApp() {
+      generateCrispAppleTouchIcon();
+
+      // Khởi tạo cấu hình mặc định nếu lần đầu mở
+      if (!localStorage.getItem(STORAGE_KEYS.WEBAPP_URL)) {
+        localStorage.setItem(STORAGE_KEYS.WEBAPP_URL, DEFAULT_WEBAPP_URL);
+      }
+      if (!localStorage.getItem(STORAGE_KEYS.FOLDER_ID)) {
+        localStorage.setItem(STORAGE_KEYS.FOLDER_ID, DEFAULT_DRIVE_FOLDER_ID);
+      }
+      if (localStorage.getItem(STORAGE_KEYS.PRIVACY_MASK) === "1") {
+        document.body.classList.add("privacy-masked");
+      }
+      if (localStorage.getItem(STORAGE_KEYS.PIN_CODE)) {
+        lockAppNow();
+      }
+      updateToolbarState();
+
+      // Hiển thị gợi ý Thêm vào Màn hình chính nếu mở trên Safari iPhone thường (chưa standalone)
+      const isStandalone = window.navigator.standalone === true || window.matchMedia("(display-mode: standalone)").matches;
+      if (!isStandalone) {
+        const banner = document.getElementById("iosInstallBanner");
+        if (banner) banner.style.display = "flex";
+      }
+
+      // Đăng ký Service Worker Offline
+      if ("serviceWorker" in navigator && (location.protocol === "https:" || location.hostname === "localhost" || location.hostname === "127.0.0.1")) {
+        navigator.serviceWorker.register("./sw.js").catch(() => {});
+        navigator.serviceWorker.addEventListener("message", (event) => {
+          if (event.data && event.data.type === "NAVIGATE_TAB" && event.data.url) {
+            const qIdx = event.data.url.indexOf("?");
+            if (qIdx >= 0) {
+              const p = new URLSearchParams(event.data.url.slice(qIdx));
+              if (p.get("tab")) switchTab(p.get("tab"));
+            }
+          }
+        });
+      }
+
+      // Tải dữ liệu Offline từ IndexedDB trước để hiển thị tức thì (< 30ms)
+      allNotifications = await loadAllFromLocalDb();
+
+      // Nếu được mở trực tiếp từ Google Apps Script (?ui=ios) có dữ liệu nạp sẵn
+      if (Array.isArray(window.__PRELOADED_NOTIFICATIONS__) && window.__PRELOADED_NOTIFICATIONS__.length > 0) {
+        await mergeIncomingNotifications(window.__PRELOADED_NOTIFICATIONS__, false);
+      }
+
+      renderApp();
+      await handleUrlQueryActions();
+
+      // Đồng bộ thời gian thực với Google Drive
+      await syncNow(false);
+
+      // Nếu trên Drive chưa có thông báo nào cả, nạp sẵn 4 mẫu demo để người dùng trải nghiệm ngay
+      if (allNotifications.length === 0) {
+        await seedSampleDataIfNeeded(false);
+      }
+
+      setupAutoPolling();
+    }
+
+    window.addEventListener("DOMContentLoaded", initNotiStarIosApp);
+  </script>
+</body>
+</html>
