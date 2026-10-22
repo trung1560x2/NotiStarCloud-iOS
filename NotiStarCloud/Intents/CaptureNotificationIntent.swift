@@ -47,7 +47,7 @@ struct CaptureNotificationIntent: AppIntent {
             isRevoked: isRevoked
         )
 
-        GoogleCloudSyncService.enqueueShortcutItem(newItem)
+        await GoogleCloudSyncService.enqueueShortcutItem(newItem)
 
         await MainActor.run {
             GoogleCloudSyncService.shared.addOrMergeNotification(newItem, triggerCloudPush: false)
