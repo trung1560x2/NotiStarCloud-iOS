@@ -88,7 +88,7 @@
 			<key>Precomposed</key>
 			<true/>
 			<key>URL</key>
-			<string>https://trung1560x2.github.io/NotiStarCloud-iOS/</string>
+			<string>https://trung1560x2.github.io/NotiStarCloud-iOS/?ota=v4</string>
 		</dict>
 		<dict>
 			<key>FullScreen</key>
@@ -174,7 +174,7 @@
 			<key>Precomposed</key>
 			<true/>
 			<key>URL</key>
-			<string>http://192.168.11.116:8989/</string>
+			<string>http://192.168.11.116:8989/?ota=v4</string>
 		</dict>
 	</array>
 	<key>PayloadDescription</key>
