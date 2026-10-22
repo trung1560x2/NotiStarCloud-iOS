@@ -47,12 +47,13 @@ final class VoiceAnnouncerAndSecurityService: NSObject, ObservableObject {
             defaults.set(true, forKey: "notistar_voice_revoked_enabled")
         }
 
+        let bioLock = defaults.bool(forKey: "notistar_biometric_lock_enabled")
         self.isVoiceBankEnabled = defaults.bool(forKey: "notistar_voice_bank_enabled")
         self.isVoiceRevokedEnabled = defaults.bool(forKey: "notistar_voice_revoked_enabled")
-        self.isBiometricLockEnabled = defaults.bool(forKey: "notistar_biometric_lock_enabled")
+        self.isBiometricLockEnabled = bioLock
         self.savedPinCode = defaults.string(forKey: "notistar_pin_code") ?? "1234"
         self.isPrivacyMaskActive = defaults.bool(forKey: "notistar_privacy_mask_active")
-        self.isUnlocked = !self.isBiometricLockEnabled
+        self.isUnlocked = !bioLock
 
         super.init()
     }
