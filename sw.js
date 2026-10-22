@@ -4,7 +4,7 @@
  * Tự động làm mới (auto-navigate) cửa sổ iPhone ngay khi nâng cấp từ bản cũ lên bản OTA mới.
  */
 
-const CACHE_NAME = "notistar-ios-ota-v5";
+const CACHE_NAME = "notistar-ios-ota-v6";
 const APP_SHELL_ASSETS = [
   "./",
   "./index.html",

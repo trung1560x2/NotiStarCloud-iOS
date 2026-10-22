@@ -1,11 +1,11 @@
 {
-  "versionCode": 5,
-  "androidVersionCode": 6,
-  "versionName": "9.1.0-iOS18",
-  "updatedAt": "2026-10-22T16:19:30+07:00",
+  "versionCode": 6,
+  "androidVersionCode": 7,
+  "versionName": "9.2.0-Pro",
+  "updatedAt": "2026-10-22T16:46:30+07:00",
   "resetFalseRevokedVersion": 3,
   "forceSnapshotReload": true,
   "androidApkUrl": "https://trung1560x2.github.io/NotiStarCloud-iOS/NotiStarCloud_OneUI7_AutoDrive.apk",
   "iosWebAppUrl": "https://trung1560x2.github.io/NotiStarCloud-iOS/",
-  "changelog": "• Nâng cấp toàn diện giao diện chuẩn iOS 18 + OneUI 7 Luxe (Kính mờ Frosted Glass, Icon Vector SF-Symbols, Gom nhóm theo Ngày, Thẻ thông báo gọn tinh tế)\n• Chạm vào bất kỳ thẻ thông báo nào để mở Sheet Chi tiết & Dòng thời gian Hội thoại (Bong bóng chat iMessage)\n• Bộ sưu tập Ảnh kiểu Apple Photos & Màn hình Quản lý kiểu Cài đặt iOS 18"
+  "changelog": "• Nâng cấp lên v9.2.0-Pro cho cả iOS & Android:\n• [Mới] Chế độ Gom nhóm theo Người gửi / Hội thoại (nút 'Hội thoại' cạnh thanh tìm kiếm)\n• [Mới] Tab & Radar Từ khóa Khẩn cấp / VIP (🔥 VIP) tự động bắt tin quan trọng\n• [Mới] Tự động bóc tách Mã Vận Đơn (Shopee SPXVN, GHN, GHTK, ViettelPost) & Mã Giảm Giá Voucher\n• [Mới] Biểu đồ Phân tích Hoạt động 24 Giờ & Top 5 Người liên hệ nhiều nhất trong mục Quản lý\n• [Mới] Nút Ghim sao nhanh (★) trên thẻ & Chia sẻ toàn bộ cuộc hội thoại qua iOS Share Sheet"
 }
