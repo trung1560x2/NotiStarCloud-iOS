@@ -1383,7 +1383,7 @@
           <div class="brand-titles">
             <h1>
               NotiStar
-              <span class="ios-badge">OneUI 7</span>
+              <span class="ios-badge" id="platformBadge">iOS 18 • Liquid</span>
             </h1>
             <div class="sync-status-line" id="syncStatusText">
               Đã đồng bộ Cloud
@@ -1531,14 +1531,6 @@
       <span>Quản lý</span>
     </button>
   </nav>
-
-  <!-- Modal Detail & Conversation Sheet (Opens when tapping any Notification Card) -->
-  <div id="detailModal" class="modal-backdrop" onclick="closeModalOnBackdrop(event, 'detailModal')">
-    <div class="modal-sheet">
-      <div class="sheet-handle"></div>
-      <div id="detailModalContent"></div>
-    </div>
-  </div>
 
   <!-- Modal Detail & Conversation Sheet (Opens when tapping any Notification Card) -->
   <div id="detailModal" class="modal-backdrop" onclick="closeModalOnBackdrop(event, 'detailModal')">
@@ -1739,8 +1731,8 @@
       OTA_VERSION: "notistar_ios_ota_version_code",
       CLEANED_V3: "notistar_ios_cleaned_false_revoked_v3"
     };
-    const CURRENT_OTA_VERSION_CODE = 6;
-    const CURRENT_OTA_VERSION_NAME = "9.2.0-Pro";
+    const CURRENT_OTA_VERSION_CODE = 9;
+    const CURRENT_OTA_VERSION_NAME = "9.4.0-iOS18";
 
     const IDB_NAME = "NotiStarCloud_iOS_DB";
     const IDB_VERSION = 1;
@@ -1759,6 +1751,64 @@
     let announcedIds = new Set();
     let enteredPin = "";
     let pinSetupMode = false;
+    const IS_ANDROID_NATIVE = typeof window.AndroidNative !== "undefined";
+
+    async function syncFromAndroidNativeDb(showToastMsg = false) {
+      if (!IS_ANDROID_NATIVE) return 0;
+      try {
+        const rawJson = window.AndroidNative.getLocalNotificationsJson(350);
+        if (rawJson) {
+          const parsed = JSON.parse(rawJson);
+          if (Array.isArray(parsed)) {
+            const normalized = parsed
+              .filter((r) => !(r.packageName === "com.notistar.cloud" && String(r.title || "").startsWith("🚨")))
+              .map(normalizeNotification);
+            allNotifications = normalized.sort((a, b) => b.time - a.time);
+            renderApp();
+          }
+        }
+        updateAndroidPermissionBanner();
+        const statsStr = window.AndroidNative.getSyncStatusSubtitle ? window.AndroidNative.getSyncStatusSubtitle() : "";
+        if (statsStr) {
+          setSyncStatus(statsStr, true);
+        }
+        if (showToastMsg) {
+          showToast(`✅ Đã làm mới ${allNotifications.length} thông báo từ máy Android!`);
+        }
+        return allNotifications.length;
+      } catch (e) {
+        console.error("syncFromAndroidNativeDb error", e);
+      }
+      return 0;
+    }
+
+    function updateAndroidPermissionBanner() {
+      if (!IS_ANDROID_NATIVE) return;
+      const banner = document.getElementById("iosInstallBanner");
+      if (!banner) return;
+      const granted = window.AndroidNative.isNotificationPermissionGranted
+        ? window.AndroidNative.isNotificationPermissionGranted()
+        : true;
+      if (!granted) {
+        banner.style.display = "flex";
+        banner.style.background = "rgba(255, 69, 58, 0.18)";
+        banner.style.borderColor = "rgba(255, 69, 58, 0.5)";
+        banner.innerHTML = `
+          <div class="install-banner-text" style="color:#FFD3D0;">
+            <strong>⚠️ Chưa cấp quyền Đọc thông báo ngầm:</strong> Bật ngay để tự động bắt tin nhắn thu hồi &amp; ảnh Zalo/Messenger
+          </div>
+          <button class="btn btn-primary" style="flex:0 0 auto;width:auto;padding:7px 12px;font-size:12px;" onclick="window.AndroidNative.openNotificationSettings()">
+            Cấp quyền
+          </button>
+        `;
+      } else {
+        banner.style.display = "none";
+      }
+    }
+
+    window.onAndroidNativeUpdated = function() {
+      syncFromAndroidNativeDb(false);
+    };
 
     /*************************************************************************
      * 2. REGEX & ANALYZERS (100% PARITY WITH ANDROID SmartBankingAndOtpAnalyzer)
@@ -2094,6 +2144,12 @@
     }
 
     async function syncNow(showToastMsg = false) {
+      if (IS_ANDROID_NATIVE) {
+        await syncFromAndroidNativeDb(false);
+        if (showToastMsg && window.AndroidNative.triggerCloudSync) {
+          try { window.AndroidNative.triggerCloudSync(); } catch (e) {}
+        }
+      }
       if (isSyncing) return;
       const webAppUrl = getWebAppUrl();
       if (!webAppUrl) {
@@ -2248,6 +2304,12 @@
     }
 
     function speakVietnamese(text) {
+      if (IS_ANDROID_NATIVE && window.AndroidNative.speakVietnamese) {
+        try {
+          window.AndroidNative.speakVietnamese(String(text || ""));
+          return;
+        } catch (e) {}
+      }
       if (!("speechSynthesis" in window)) {
         showToast("⚠️ Trình duyệt này không hỗ trợ đọc giọng nói");
         return;
@@ -2989,6 +3051,21 @@
             <span style="color:#64D2FF;">Chia sẻ</span>
           </button>
         </div>
+        ${IS_ANDROID_NATIVE ? `
+        <div class="btn-row" style="margin-top:0;margin-bottom:10px;">
+          <button class="btn btn-primary" onclick="window.AndroidNative.openApp(String('${item.id}'), '${escapeAttr(item.key || "")}', '${escapeAttr(item.packageName || "")}')">
+            🚀 Mở ${escapeHtml(item.appName)}
+          </button>
+          ${item.hasRemoteInput ? `
+          <button class="btn btn-success" onclick="window.AndroidNative.directReply(String('${item.id}'))">
+            💬 Trả lời nhanh
+          </button>
+          ` : ""}
+          <button class="btn" onclick="window.AndroidNative.repostOrSnooze(String('${item.id}'))">
+            ⏰ Báo lại
+          </button>
+        </div>
+        ` : ""}
         <div style="display:flex;justify-content:flex-end;margin-top:-6px;margin-bottom:8px;">
           <button class="smart-chip" style="color:#FF6961;border-color:rgba(255,69,58,0.35);" onclick="deleteNotificationByUid('${escapeAttr(item.uid)}'); closeModal('detailModal')">
             🗑️ Xóa thông báo này
@@ -3010,12 +3087,19 @@
       const target = allNotifications.find((n) => n.uid === uid);
       if (!target) return;
       target.isRevoked = !target.isRevoked;
+      if (IS_ANDROID_NATIVE && target.id) {
+        try { window.AndroidNative.toggleRevoked(String(target.id), Boolean(target.isRevoked)); } catch (e) {}
+      }
       await saveAllToLocalDb(allNotifications);
       renderApp();
       showToast(target.isRevoked ? "🚫 Đã đánh dấu là Tin nhắn thu hồi" : "✅ Đã chuyển về tin nhắn thường");
     }
 
     async function deleteNotificationByUid(uid) {
+      const target = allNotifications.find((n) => n.uid === uid);
+      if (IS_ANDROID_NATIVE && target && target.id) {
+        try { window.AndroidNative.deleteNotification(String(target.id)); } catch (e) {}
+      }
       allNotifications = allNotifications.filter((n) => n.uid !== uid);
       await saveAllToLocalDb(allNotifications);
       renderApp();
@@ -3036,6 +3120,9 @@
     }
 
     async function deleteNotificationsByApp(appKey, appLabel) {
+      if (IS_ANDROID_NATIVE) {
+        try { window.AndroidNative.deleteNotificationsByPackage(String(appKey)); } catch (e) {}
+      }
       const before = allNotifications.length;
       allNotifications = allNotifications.filter((n) => (n.packageName || n.appName) !== appKey);
       const removed = before - allNotifications.length;
@@ -3045,6 +3132,14 @@
     }
 
     async function resetAllFalseRevokedItems() {
+      if (IS_ANDROID_NATIVE) {
+        try {
+          const cnt = window.AndroidNative.resetAllFalseRevoked();
+          await syncFromAndroidNativeDb(false);
+          showToast(`✅ Đã sửa ${cnt} tin báo thu hồi nhầm về trạng thái bình thường!`);
+          return;
+        } catch (e) {}
+      }
       let fixed = 0;
       for (const item of allNotifications) {
         if (item.isRevoked && item.key !== "demo_zalo_2") {
@@ -3061,6 +3156,14 @@
     }
 
     async function cleanSpamAppsNow() {
+      if (IS_ANDROID_NATIVE) {
+        try {
+          const cnt = window.AndroidNative.cleanPromotionalSpam();
+          await syncFromAndroidNativeDb(false);
+          showToast(`🧹 Đã dọn sạch ${cnt} thông báo giải trí/quảng cáo!`);
+          return;
+        } catch (e) {}
+      }
       const spamKeywords = ["youtube", "shopee", "lazada", "tiktok", "weather", "spotify"];
       const before = allNotifications.length;
       allNotifications = allNotifications.filter((n) => {
@@ -3113,6 +3216,12 @@
     }
 
     async function checkOtaUpdate(manual = false) {
+      if (IS_ANDROID_NATIVE && window.AndroidNative.checkOtaUpdate) {
+        try {
+          window.AndroidNative.checkOtaUpdate(Boolean(manual));
+          return;
+        } catch (e) {}
+      }
       try {
         if (manual) showToast("🔄 Đang kiểm tra bản cập nhật OTA qua mạng...");
         const res = await fetch(`./version.json?_t=${Date.now()}`, { cache: "no-store" });
@@ -3237,13 +3346,53 @@
           </p>
           <div class="btn-row" style="margin-top:0;">
             <button class="btn btn-primary" onclick="checkOtaUpdate(true)">
-              ⚡ Cập nhật OTA cho iOS ngay
+              ⚡ ${IS_ANDROID_NATIVE ? "Kiểm tra & Cập nhật APK qua OTA" : "Cập nhật OTA cho iOS ngay"}
             </button>
+            ${!IS_ANDROID_NATIVE ? `
             <a class="btn btn-success" href="./NotiStarCloud_OneUI7_AutoDrive.apk" download="NotiStarCloud_OneUI7_AutoDrive.apk">
               🤖 Tải / Update APK Android (OTA)
-            </a>
+            </a>` : ""}
           </div>
         </div>
+
+        ${IS_ANDROID_NATIVE ? `
+        <div class="mgmt-section" style="border-color:rgba(10,132,255,0.4);background:linear-gradient(145deg, rgba(10,132,255,0.12), rgba(28,28,30,0.92));">
+          <div class="mgmt-section-title">
+            <span>🤖 Đặc quyền Hệ thống Android &amp; Đổi Giao diện</span>
+            <span class="pill-badge badge-cloud">Native Bridge</span>
+          </div>
+          <p class="mgmt-section-sub">
+            Bạn đang trải nghiệm <strong>Giao diện iOS 18 Liquid Glass</strong> chạy trực tiếp trên nhân hệ thống Android (bắt thông báo ngầm 0ms, chống thu hồi Zalo/Messenger, trả lời trực tiếp):
+          </p>
+          <div class="btn-row" style="margin-top:0;">
+            <button class="btn btn-primary" onclick="window.AndroidNative.openNotificationSettings()">
+              🔑 Quyền Đọc TB Ngầm
+            </button>
+            <button class="btn btn-success" onclick="window.AndroidNative.openCloudSyncActivity()">
+              ☁️ Google Drive Native
+            </button>
+          </div>
+          <div class="btn-row">
+            <button class="btn" onclick="window.AndroidNative.openAutoReplyBot()">
+              🤖 Bot Tự trả lời
+            </button>
+            <button class="btn" onclick="window.AndroidNative.toggleFloatingEdge()">
+              📱 Thanh trượt cạnh
+            </button>
+            <button class="btn" onclick="window.AndroidNative.requestBatteryUnrestricted()">
+              🔋 Pin Không giới hạn
+            </button>
+          </div>
+          <div class="btn-row">
+            <button class="btn" onclick="window.AndroidNative.postTestNotification()">
+              🧪 Bắn thông báo mẫu
+            </button>
+            <button class="btn" style="border-color:rgba(167,139,250,0.5);color:#C4B5FD;" onclick="window.AndroidNative.switchToClassicAndroidUi()">
+              🎨 Chuyển sang Giao diện Android Cổ điển
+            </button>
+          </div>
+        </div>
+        ` : ""}
 
                 <div class="mgmt-section">
           <div class="mgmt-section-title">
@@ -3352,6 +3501,9 @@
       const target = allNotifications.find((n) => n.uid === uid);
       if (!target) return;
       target.isStarred = !target.isStarred;
+      if (IS_ANDROID_NATIVE && target.id) {
+        try { window.AndroidNative.toggleStar(String(target.id), Boolean(target.isStarred)); } catch (e) {}
+      }
       await saveAllToLocalDb(allNotifications);
       renderApp();
       showToast(target.isStarred ? "⭐ Đã ghim thông báo quan trọng" : "Đã bỏ ghim");
@@ -3881,11 +4033,17 @@
       }
       updateToolbarState();
 
-      // Hiển thị gợi ý Thêm vào Màn hình chính nếu mở trên Safari iPhone thường (chưa standalone)
-      const isStandalone = window.navigator.standalone === true || window.matchMedia("(display-mode: standalone)").matches;
-      if (!isStandalone) {
-        const banner = document.getElementById("iosInstallBanner");
-        if (banner) banner.style.display = "flex";
+      if (IS_ANDROID_NATIVE) {
+        const badge = document.getElementById("platformBadge");
+        if (badge) badge.textContent = "iOS 18 • Liquid";
+        updateAndroidPermissionBanner();
+      } else {
+        // Hiển thị gợi ý Thêm vào Màn hình chính nếu mở trên Safari iPhone thường (chưa standalone)
+        const isStandalone = window.navigator.standalone === true || window.matchMedia("(display-mode: standalone)").matches;
+        if (!isStandalone) {
+          const banner = document.getElementById("iosInstallBanner");
+          if (banner) banner.style.display = "flex";
+        }
       }
 
       // Đăng ký Service Worker Offline
@@ -3902,8 +4060,13 @@
         });
       }
 
-      // Tải dữ liệu Offline từ IndexedDB trước để hiển thị tức thì (< 30ms)
-      allNotifications = await loadAllFromLocalDb();
+      // Nếu chạy trên Android Native, nạp trực tiếp từ SQLite Database của máy (< 15ms)
+      if (IS_ANDROID_NATIVE) {
+        await syncFromAndroidNativeDb(false);
+      } else {
+        // Tải dữ liệu Offline từ IndexedDB trước để hiển thị tức thì (< 30ms)
+        allNotifications = await loadAllFromLocalDb();
+      }
 
       // Tự động dọn sạch trạng thái báo thu hồi nhầm từ bản cũ (1 lần duy nhất)
       if (localStorage.getItem(STORAGE_KEYS.CLEANED_V3) !== "1") {

@@ -1,11 +1,11 @@
 {
-  "versionCode": 8,
-  "androidVersionCode": 8,
-  "versionName": "9.3.0-OneUI9-Liquid",
-  "updatedAt": "2026-10-22T17:27:30+07:00",
+  "versionCode": 9,
+  "androidVersionCode": 9,
+  "versionName": "9.4.0-iOS18",
+  "updatedAt": "2026-10-23T11:35:00+07:00",
   "resetFalseRevokedVersion": 3,
   "forceSnapshotReload": true,
   "androidApkUrl": "https://trung1560x2.github.io/NotiStarCloud-iOS/NotiStarCloud_OneUI7_AutoDrive.apk",
   "iosWebAppUrl": "https://trung1560x2.github.io/NotiStarCloud-iOS/",
-  "changelog": "• Nâng cấp đại diện mạo Android lên v9.3.0 (One UI 9 + Apple Liquid Glass):\n• [Giao diện mới] Nền kính không gian 3D (Spatial Obsidian + Aurora Mesh) kết hợp viền phản xạ ánh sáng khúc xạ (Specular Rim Light)\n• [Thiết kế mới] Đảo điều khiển nổi (Floating Top Control Island) & Thanh lọc thông báo viên nang nổi (Floating Bottom Filter Capsule Dock)\n• [Thẻ kính đa trạng thái] Tự động chuyển hiệu ứng kính: Kính Đỏ Crimson cho tin bị thu hồi, Kính Vàng Hổ Phách cho tin VIP, Kính Xanh Cyan tiêu chuẩn\n• [Tiện ích nhanh 1-chạm] Nút '💬 Hội thoại' gom nhóm tin nhắn ngay trên thanh tìm kiếm + Tự động hiện nút Copy OTP / Vận đơn Shopee-GHN-GHTK / Mã Voucher"
+  "changelog": "• Nâng cấp bản Android lên v9.4.0-iOS18 (Giao diện iOS 18 Liquid Glass đồng bộ 100% với bản iPhone):\n• [Giao diện iOS 18 trên Android] Toàn bộ bố cục Bento 4 ô thống kê, thanh tìm kiếm kính mờ + nút Hội thoại, thanh lọc chip iOS, thẻ kính mờ iOS 18, Sheet dòng thời gian hội thoại và thanh Dock 5 tab nổi giống hệt 100% bản iOS\n• [Kết nối Nhân Android Native 0ms] Bắt thông báo & chống thu hồi Zalo/Messenger trực tiếp vào giao diện iOS 18 theo thời gian thực ngay cả khi không có mạng\n• [Tích hợp Đặc quyền Android] Mở ứng dụng gốc, Trả lời nhanh (Direct Reply), Báo lại, Bot tự trả lời, Thanh trượt cạnh màn hình ngay trong giao diện iOS\n• [Chuyển đổi 2 chiều] Có thể chuyển qua lại 1-chạm giữa Giao diện iOS 18 và Giao diện Android trong tab Quản lý"
 }
