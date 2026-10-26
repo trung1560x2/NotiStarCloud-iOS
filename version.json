@@ -1,11 +1,11 @@
 {
-  "versionCode": 11,
-  "androidVersionCode": 11,
-  "versionName": "9.6.0-iOS18",
-  "updatedAt": "2026-10-26T21:28:00+07:00",
+  "versionCode": 12,
+  "androidVersionCode": 12,
+  "versionName": "9.7.0-iOS18",
+  "updatedAt": "2026-10-26T22:12:00+07:00",
   "resetFalseRevokedVersion": 3,
   "forceSnapshotReload": true,
   "androidApkUrl": "https://trung1560x2.github.io/NotiStarCloud-iOS/NotiStarCloud_OneUI7_AutoDrive.apk",
   "iosWebAppUrl": "https://trung1560x2.github.io/NotiStarCloud-iOS/",
-  "changelog": "• Cập nhật v9.6.0-iOS18 (Tách riêng Mỗi ngày 1 File Sao lưu & Gỡ bỏ hoàn toàn giới hạn 2.000 tin nhắn):\n• [Mỗi ngày 1 File Sao lưu] Chuyển sang kiến trúc lưu trữ theo ngày (notistar_backup_YYYY-MM-DD.json) trên Google Drive, tự động tách tệp cũ sang từng tệp theo ngày để dữ liệu các ngày trước không bao giờ bị ghi đè\n• [Bỏ giới hạn 2.000 tin nhắn] Nâng dung lượng lưu trữ lên 50.000+ tin nhắn trên máy, 20.000 tin/ngày trên Drive, không giới hạn tổng số ngày lưu trữ (Retention = Vĩnh viễn)\n• [Quản lý File Theo Ngày ngay trong App] Bổ sung mục 📅 Kho Sao lưu Theo Ngày trong tab Quản lý cho phép xem, tải riêng từng file notistar_backup_YYYY-MM-DD.json hoặc đẩy từng ngày lên Google Drive chỉ với 1 chạm"
+  "changelog": "• Cập nhật v9.7.0-iOS18 (Phân mảnh Tự động _part2, _part3 — Không bao giờ Miss tin nhắn dù 1 ngày >20.000 hay >100.000 tin):\n• [0% Miss / Không giới hạn số tin mỗi ngày] Thay thế giới hạn 20.000 tin/ngày bằng cơ chế Multi-Part Sharding: mỗi tệp giữ tối đa 10.000 tin để nhẹ (<15MB), khi vượt ngưỡng tự động đóng băng Part 1 và tràn sang notistar_backup_YYYY-MM-DD_part2.json, _part3.json... vô hạn\n• [Đồng bộ theo Lô 600 tin/lần] Chia nhỏ các lần đẩy Cloud thành từng batch 600 tin liên tiếp giúp không bao giờ bị nghẽn mạng hay đứt quãng khi có hàng chục nghìn tin nhắn\n• [Bỏ giới hạn 50.000 tin trên máy] Gỡ bỏ hoàn toàn giới hạn bộ nhớ cục bộ IndexedDB và SQLite để giữ trọn vẹn 100% lịch sử thông báo"
 }

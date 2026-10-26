@@ -170,54 +170,80 @@ function mergeIntoDailyDriveBackups(device, newItems, folderId) {
   for (var dIdx = 0; dIdx < dateKeys.length; dIdx++) {
     var dateStr = dateKeys[dIdx];
     var dayNewItems = byDate[dateStr];
-    var dailyFileName = DAILY_FILE_PREFIX + dateStr + '.json';
-    var existingFile = findFileByNameInFolder(folder, dailyFileName);
-    var existingDayItems = [];
 
-    if (existingFile) {
+    // Tự động phân mảnh (Auto-Sharding): Nếu phần hiện tại đã đủ 10.000 tin thì tự tạo tiếp _part2.json, _part3.json...
+    // Đảm bảo KHÔNG BAO GIỜ MISS bất kỳ thông báo nào dù 1 ngày có 50.000 hay 500.000 thông báo!
+    var partIdx = 1;
+    var targetFile = null;
+    var existingPartItems = [];
+
+    while (true) {
+      var candidateName = partIdx === 1
+        ? (DAILY_FILE_PREFIX + dateStr + '.json')
+        : (DAILY_FILE_PREFIX + dateStr + '_part' + partIdx + '.json');
+      var f = findFileByNameInFolder(folder, candidateName);
+      if (!f) {
+        break;
+      }
+      var parsedItems = [];
       try {
-        var parsed = JSON.parse(existingFile.getBlob().getDataAsString('UTF-8'));
+        var parsed = JSON.parse(f.getBlob().getDataAsString('UTF-8'));
         if (Array.isArray(parsed.notifications)) {
-          existingDayItems = parsed.notifications;
+          parsedItems = parsed.notifications;
         }
       } catch (ignore) {}
+
+      if (parsedItems.length < 10000) {
+        targetFile = f;
+        existingPartItems = parsedItems;
+        break;
+      }
+      partIdx++;
     }
 
-    var mergedDay = deduplicateNotificationsList(existingDayItems.concat(dayNewItems));
-    if (mergedDay.length > MAX_ITEMS_PER_DAY) {
-      mergedDay = mergedDay.slice(0, MAX_ITEMS_PER_DAY);
+    var mergedAll = deduplicateNotificationsList(existingPartItems.concat(dayNewItems));
+
+    for (var offset = 0; offset < mergedAll.length; offset += 10000) {
+      var chunk = mergedAll.slice(offset, offset + 10000);
+      var curPart = partIdx + Math.floor(offset / 10000);
+      var curFileName = curPart === 1
+        ? (DAILY_FILE_PREFIX + dateStr + '.json')
+        : (DAILY_FILE_PREFIX + dateStr + '_part' + curPart + '.json');
+      var curFile = (offset === 0 && targetFile) ? targetFile : findFileByNameInFolder(folder, curFileName);
+
+      var dayObj = {
+        status: 'ok',
+        app: 'NotiStarCloud',
+        version: 2,
+        storageMode: 'daily_sharded_unlimited',
+        date: dateStr,
+        part: curPart,
+        fileName: curFileName,
+        device: device,
+        folderId: targetFolderId,
+        exportTime: Date.now(),
+        exportDate: new Date().toISOString(),
+        count: chunk.length,
+        notifications: chunk
+      };
+
+      var jsonStr = JSON.stringify(dayObj, null, 2);
+      if (curFile) {
+        curFile.setContent(jsonStr);
+      } else if (folder) {
+        curFile = folder.createFile(curFileName, jsonStr, MimeType.PLAIN_TEXT);
+      } else {
+        curFile = DriveApp.createFile(curFileName, jsonStr, MimeType.PLAIN_TEXT);
+      }
+
+      updatedFiles.push({
+        date: dateStr,
+        part: curPart,
+        fileName: curFileName,
+        count: chunk.length,
+        fileId: curFile ? curFile.getId() : ''
+      });
     }
-
-    var dayObj = {
-      status: 'ok',
-      app: 'NotiStarCloud',
-      version: 2,
-      storageMode: 'daily_file',
-      date: dateStr,
-      fileName: dailyFileName,
-      device: device,
-      folderId: targetFolderId,
-      exportTime: Date.now(),
-      exportDate: new Date().toISOString(),
-      count: mergedDay.length,
-      notifications: mergedDay
-    };
-
-    var jsonStr = JSON.stringify(dayObj, null, 2);
-    if (existingFile) {
-      existingFile.setContent(jsonStr);
-    } else if (folder) {
-      existingFile = folder.createFile(dailyFileName, jsonStr, MimeType.PLAIN_TEXT);
-    } else {
-      existingFile = DriveApp.createFile(dailyFileName, jsonStr, MimeType.PLAIN_TEXT);
-    }
-
-    updatedFiles.push({
-      date: dateStr,
-      fileName: dailyFileName,
-      count: mergedDay.length,
-      fileId: existingFile ? existingFile.getId() : ''
-    });
   }
 
   return {
@@ -244,15 +270,17 @@ function handlePullRequest(folderId, targetDate) {
     var combined = [];
 
     if (targetDate && /^\d{4}-\d{2}-\d{2}$/.test(targetDate)) {
-      var singleName = DAILY_FILE_PREFIX + targetDate + '.json';
-      var singleFile = findFileByNameInFolder(folder, singleName);
-      if (singleFile) {
-        try {
-          var parsedSingle = JSON.parse(singleFile.getBlob().getDataAsString('UTF-8'));
-          if (Array.isArray(parsedSingle.notifications)) {
-            combined = parsedSingle.notifications;
-          }
-        } catch (e) {}
+      for (var dIdx = 0; dIdx < dailyFilesMeta.length; dIdx++) {
+        var dMeta = dailyFilesMeta[dIdx];
+        if (dMeta.baseDate === targetDate || dMeta.date === targetDate || String(dMeta.date).indexOf(targetDate) === 0) {
+          try {
+            var dFile = DriveApp.getFileById(dMeta.fileId);
+            var parsedPart = JSON.parse(dFile.getBlob().getDataAsString('UTF-8'));
+            if (Array.isArray(parsedPart.notifications)) {
+              combined = combined.concat(parsedPart.notifications);
+            }
+          } catch (e) {}
+        }
       }
     } else {
       // Đọc các tệp theo ngày từ mới nhất đến cũ nhất
@@ -324,8 +352,10 @@ function listDailyFilesInFolder(folder) {
     var name = f.getName();
     if (name.indexOf(DAILY_FILE_PREFIX) === 0 && name.slice(-5) === '.json') {
       var datePart = name.replace(DAILY_FILE_PREFIX, '').replace('.json', '');
+      var baseDate = datePart.substring(0, 10);
       result.push({
         date: datePart,
+        baseDate: baseDate,
         fileName: name,
         fileId: f.getId(),
         sizeBytes: f.getSize(),

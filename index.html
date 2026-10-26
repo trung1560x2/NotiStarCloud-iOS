@@ -1739,8 +1739,8 @@
       OTA_VERSION: "notistar_ios_ota_version_code",
       CLEANED_V3: "notistar_ios_cleaned_false_revoked_v3"
     };
-    const CURRENT_OTA_VERSION_CODE = 11;
-    const CURRENT_OTA_VERSION_NAME = "9.6.0-iOS18";
+    const CURRENT_OTA_VERSION_CODE = 12;
+    const CURRENT_OTA_VERSION_NAME = "9.7.0-iOS18";
 
     const IDB_NAME = "NotiStarCloud_iOS_DB";
     const IDB_VERSION = 1;
@@ -2061,7 +2061,7 @@
     }
 
     async function saveAllToLocalDb(items) {
-      const sorted = [...items].sort((a, b) => b.time - a.time).slice(0, 50000);
+      const sorted = [...items].sort((a, b) => b.time - a.time);
       allNotifications = sorted;
 
       try {
@@ -2293,8 +2293,14 @@
         showToast(`Không có thông báo nào trong ngày ${dateStr}`);
         return;
       }
-      showToast(`⏳ Đang đẩy tệp notistar_backup_${dateStr}.json (${dayItems.length} tin) lên Google Drive...`);
-      await pushItemsToCloud(dayItems, true);
+      const chunkSize = 600;
+      const totalChunks = Math.ceil(dayItems.length / chunkSize);
+      showToast(`⏳ Đang đẩy ngày ${dateStr} (${dayItems.length} tin • ${totalChunks} lô) lên Google Drive...`);
+      for (let i = 0; i < dayItems.length; i += chunkSize) {
+        const batch = dayItems.slice(i, i + chunkSize);
+        await pushItemsToCloud(batch, false);
+      }
+      showToast(`☁️ Đã đẩy trọn vẹn ${dayItems.length} tin của ngày ${dateStr} lên Google Drive (0% miss)!`);
     }
 
     function exportDailyBackupJson(dateStr) {
@@ -2304,23 +2310,33 @@
         showToast(`Không có dữ liệu ngày ${dateStr}`);
         return;
       }
-      const fileName = `notistar_backup_${dateStr}.json`;
-      const backupObj = {
-        status: "ok",
-        app: "NotiStarCloud",
-        version: 2,
-        storageMode: "daily_file",
-        date: dateStr,
-        fileName: fileName,
-        device: getDeviceName(),
-        exportTime: Date.now(),
-        exportDate: new Date().toISOString(),
-        count: dayItems.length,
-        notifications: dayItems
-      };
-      const blob = new Blob([JSON.stringify(backupObj, null, 2)], { type: "application/json;charset=utf-8" });
-      triggerFileDownload(blob, fileName);
-      showToast(`⬇️ Đã xuất tệp ${fileName} (${dayItems.length} thông báo)!`);
+      const shardLimit = 10000;
+      const totalParts = Math.ceil(dayItems.length / shardLimit);
+      for (let p = 0; p < totalParts; p++) {
+        const chunk = dayItems.slice(p * shardLimit, (p + 1) * shardLimit);
+        const partNo = p + 1;
+        const fileName = partNo === 1
+          ? `notistar_backup_${dateStr}.json`
+          : `notistar_backup_${dateStr}_part${partNo}.json`;
+        const backupObj = {
+          status: "ok",
+          app: "NotiStarCloud",
+          version: 2,
+          storageMode: "daily_sharded_unlimited",
+          date: dateStr,
+          part: partNo,
+          totalParts: totalParts,
+          fileName: fileName,
+          device: getDeviceName(),
+          exportTime: Date.now(),
+          exportDate: new Date().toISOString(),
+          count: chunk.length,
+          notifications: chunk
+        };
+        const blob = new Blob([JSON.stringify(backupObj, null, 2)], { type: "application/json;charset=utf-8" });
+        setTimeout(() => triggerFileDownload(blob, fileName), p * 350);
+      }
+      showToast(`⬇️ Đã xuất ${dayItems.length} thông báo ngày ${dateStr} (${totalParts} tệp)!`);
     }
 
     function exportAllDailyBackupsSeparate() {
@@ -3737,7 +3753,8 @@
             <span class="pill-badge badge-bank-in">Không giới hạn 2k</span>
           </div>
           <p class="mgmt-section-sub">
-            • Đã nâng cấp lên cơ chế <strong>Mỗi ngày 1 tệp riêng biệt (<code>notistar_backup_YYYY-MM-DD.json</code>)</strong> và <strong>gỡ bỏ hoàn toàn giới hạn 2.000 tin nhắn</strong> (hỗ trợ lưu trữ không giới hạn số ngày, tối đa 50.000+ tin nhắn trên máy &amp; 20.000 tin/ngày trên Drive):
+            • <strong>Không giới hạn số lượng (0% Miss):</strong> SQLite &amp; IndexedDB trên máy lưu trữ <strong>vô hạn thông báo</strong> (không cắt <code>slice</code>).<br/>
+            • <strong>Tự động phân mảnh theo ngày (Auto-Sharding):</strong> Mỗi ngày lưu vào <code>notistar_backup_YYYY-MM-DD.json</code>; nếu 1 ngày vượt quá 10.000 tin (20k, 50k, 100k+ tin/ngày), hệ thống tự động nối tiếp sang <code>_part2.json</code>, <code>_part3.json</code>... nên <strong>không bao giờ bị tràn file hay mất bất kỳ tin nhắn nào</strong>:
           </p>
           <div style="margin-bottom:10px;">
             ${Array.from(getGroupedDailyNotificationsMap().entries()).sort((a, b) => b[0].localeCompare(a[0])).map(([dStr, list]) => {
