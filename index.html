@@ -1363,9 +1363,10 @@
   <!-- Fullscreen Photo Lightbox -->
   <div id="lightboxOverlay" class="lightbox-overlay" onclick="closeLightbox()">
     <img id="lightboxImg" src="" alt="Preview" onclick="event.stopPropagation()" />
-    <div style="display:flex;gap:12px;margin-top:16px;" onclick="event.stopPropagation()">
-      <a id="lightboxDownloadBtn" class="btn btn-primary" download="notistar_photo.jpg" href="#">⬇️ Lưu ảnh vào iPhone</a>
-      <button class="btn" onclick="closeLightbox()">Đóng</button>
+    <div style="display:flex;gap:10px;margin-top:16px;flex-wrap:wrap;justify-content:center;" onclick="event.stopPropagation()">
+      <button class="btn btn-primary" style="flex:0 0 auto;width:auto;" onclick="saveCurrentLightboxPhoto()">💾 Lưu ảnh về Máy (Album NotiStar)</button>
+      <button class="btn" style="flex:0 0 auto;width:auto;" onclick="openDriveFolderExternal()">📂 Mở Google Drive</button>
+      <button class="btn" style="flex:0 0 auto;width:auto;" onclick="closeLightbox()">Đóng</button>
     </div>
   </div>
 
@@ -1455,6 +1456,7 @@
           Link &amp; SĐT <span class="tab-count" id="countLinks">0</span>
         </button>
       </div>
+      <div class="filter-tabs-scroll" id="dateFilterBar" style="padding-top:2px;padding-bottom:2px;"></div>
     </header>
 
     <div id="iosInstallBanner" class="install-banner" style="display:none;">
@@ -1731,8 +1733,8 @@
       OTA_VERSION: "notistar_ios_ota_version_code",
       CLEANED_V3: "notistar_ios_cleaned_false_revoked_v3"
     };
-    const CURRENT_OTA_VERSION_CODE = 9;
-    const CURRENT_OTA_VERSION_NAME = "9.4.0-iOS18";
+    const CURRENT_OTA_VERSION_CODE = 10;
+    const CURRENT_OTA_VERSION_NAME = "9.5.0-iOS18";
 
     const IDB_NAME = "NotiStarCloud_iOS_DB";
     const IDB_VERSION = 1;
@@ -1742,6 +1744,8 @@
     let allNotifications = [];
     let currentTab = "all";
     let currentBankFilter = "ALL";
+    let currentDateFilter = "ALL";
+    let visibleRenderLimit = 300;
     let searchQuery = "";
     let isGroupedBySender = localStorage.getItem("notistar_ios_group_sender") === "1";
     const DEFAULT_VIP_KEYWORDS = ["gấp", "khẩn", "chuyển khoản", "lương", "sếp", "mật khẩu", "hoàn tiền", "quan trọng"];
@@ -1751,35 +1755,32 @@
     let announcedIds = new Set();
     let enteredPin = "";
     let pinSetupMode = false;
+    let currentLightboxSrc = "";
     const IS_ANDROID_NATIVE = typeof window.AndroidNative !== "undefined";
 
     async function syncFromAndroidNativeDb(showToastMsg = false) {
       if (!IS_ANDROID_NATIVE) return 0;
       try {
-        const rawJson = window.AndroidNative.getLocalNotificationsJson(350);
+        const rawJson = window.AndroidNative.getLocalNotificationsJson(1200);
         if (rawJson) {
           const parsed = JSON.parse(rawJson);
-          if (Array.isArray(parsed)) {
-            const normalized = parsed
-              .filter((r) => !(r.packageName === "com.notistar.cloud" && String(r.title || "").startsWith("🚨")))
-              .map(normalizeNotification);
-            allNotifications = normalized.sort((a, b) => b.time - a.time);
-            renderApp();
+          if (Array.isArray(parsed) && parsed.length > 0) {
+            await mergeIncomingNotifications(parsed, false);
           }
         }
         updateAndroidPermissionBanner();
         const statsStr = window.AndroidNative.getSyncStatusSubtitle ? window.AndroidNative.getSyncStatusSubtitle() : "";
         if (statsStr) {
-          setSyncStatus(statsStr, true);
+          setSyncStatus(`${statsStr} • Tổng kho: ${allNotifications.length}`, true);
         }
         if (showToastMsg) {
-          showToast(`✅ Đã làm mới ${allNotifications.length} thông báo từ máy Android!`);
+          showToast(`✅ Đã đồng bộ ${allNotifications.length} thông báo (Máy + Lịch sử Cloud)!`);
         }
         return allNotifications.length;
       } catch (e) {
         console.error("syncFromAndroidNativeDb error", e);
       }
-      return 0;
+      return allNotifications.length;
     }
 
     function updateAndroidPermissionBanner() {
@@ -1981,7 +1982,12 @@
       const pkg = (item.packageName || item.appName || "app").trim();
       const title = (item.title || "").trim().slice(0, 60);
       const body = getDisplayBody(item).trim().slice(0, 90);
-      return `${pkg}|${title}|${body}`.replace(/\s+/g, "_");
+      const picSig = item.pictureB64 && item.pictureB64.length > 40 ? item.pictureB64.slice(-24) : "";
+      const ts = Number(item.time) || 0;
+      const timeBucket = body.length <= 12
+        ? String(Math.floor(ts / 3600000))
+        : (item.dateStr || formatDateOnly(ts));
+      return `${pkg}|${title}|${body}|${timeBucket}|${picSig}`.replace(/\s+/g, "_");
     }
 
     function normalizeNotification(raw) {
@@ -2500,13 +2506,36 @@
       showToast(isGroupedBySender ? "💬 Đã bật Gom nhóm theo Người gửi / Hội thoại" : "📋 Đã chuyển về chế độ Danh sách thời gian");
     }
 
+    function getConversationGroupTitle(rawTitle) {
+      const t = String(rawTitle || "").trim();
+      const colonIdx = t.indexOf(":");
+      if (colonIdx >= 2) {
+        const prefix = t.slice(0, colonIdx).trim();
+        if (prefix.length >= 2 && !/^(re|fw|fwd|trả lời)$/i.test(prefix)) {
+          return prefix;
+        }
+      }
+      return t;
+    }
+
+    function isSameConversationThread(a, b) {
+      const pkgA = a.packageName || a.appName || "";
+      const pkgB = b.packageName || b.appName || "";
+      if (pkgA !== pkgB) return false;
+      const grpA = getConversationGroupTitle(a.title || a.appName);
+      const grpB = getConversationGroupTitle(b.title || b.appName);
+      return grpA.toLowerCase() === grpB.toLowerCase();
+    }
+
     function groupNotificationsIntoThreads(list) {
       const map = new Map();
       for (const item of list) {
-        const senderKey = `${item.packageName || item.appName}|${(item.title || item.appName || "").trim()}`;
+        const grpTitle = getConversationGroupTitle(item.title || item.appName || "");
+        const senderKey = `${item.packageName || item.appName}|${grpTitle.toLowerCase()}`;
         if (!map.has(senderKey)) {
           map.set(senderKey, {
             latest: item,
+            groupTitle: grpTitle,
             count: 1,
             photosCount: hasMedia(item) ? 1 : 0,
             revokedCount: item.isRevoked ? 1 : 0,
@@ -2530,7 +2559,7 @@
       const item = allNotifications.find((n) => n.uid === uid);
       if (!item) return;
       const related = allNotifications
-        .filter((n) => (n.packageName || n.appName) === (item.packageName || item.appName) && n.title === item.title)
+        .filter((n) => isSameConversationThread(n, item))
         .sort((a, b) => a.time - b.time);
       const lines = related.map((m) => `[${formatDateTime(m.time)}] ${m.title}${m.isRevoked ? " (ĐÃ THU HỒI)" : ""}: ${getDisplayBody(m)}`);
       const fullText = `=== Lịch sử Hội thoại: ${item.title} (${item.appName}) ===\n` + lines.join("\n");
@@ -2577,6 +2606,7 @@
 
     function switchTab(tab) {
       currentTab = tab;
+      visibleRenderLimit = 300;
       document.querySelectorAll(".tab-pill").forEach((btn) => {
         btn.classList.toggle("active", btn.getAttribute("data-tab") === tab);
       });
@@ -2585,6 +2615,22 @@
       document.getElementById("dockMedia")?.classList.toggle("active", tab === "media");
       document.getElementById("dockBank")?.classList.toggle("active", tab === "bank");
       document.getElementById("dockManage")?.classList.toggle("active", tab === "manage");
+      renderApp();
+    }
+
+    function selectDateFilter(dateStr) {
+      currentDateFilter = dateStr;
+      visibleRenderLimit = 400;
+      renderApp();
+    }
+
+    function loadMoreNotifications() {
+      visibleRenderLimit += 350;
+      renderApp();
+    }
+
+    function showAllNotificationsNow() {
+      visibleRenderLimit = 5000;
       renderApp();
     }
 
@@ -2689,6 +2735,34 @@
         filtered = linksList;
       }
 
+      // Render Date Filter chips (Xem tin nhắn các ngày trước)
+      const dateBar = document.getElementById("dateFilterBar");
+      if (dateBar) {
+        const dateCounts = new Map();
+        for (const item of filtered) {
+          const dStr = item.dateStr || formatDateOnly(item.time);
+          dateCounts.set(dStr, (dateCounts.get(dStr) || 0) + 1);
+        }
+        const sortedDates = Array.from(dateCounts.keys()).sort().reverse();
+        if (sortedDates.length > 1) {
+          let dHtml = `<button class="bank-chip ${currentDateFilter === "ALL" ? "active" : ""}" onclick="selectDateFilter('ALL')">📅 Tất cả ngày (${filtered.length})</button>`;
+          for (const dStr of sortedDates) {
+            const cnt = dateCounts.get(dStr);
+            const parts = dStr.split("-");
+            const label = parts.length === 3 ? `Ngày ${parts[2]}/${parts[1]}` : dStr;
+            dHtml += `<button class="bank-chip ${currentDateFilter === dStr ? "active" : ""}" onclick="selectDateFilter('${escapeAttr(dStr)}')">${escapeHtml(label)} (${cnt})</button>`;
+          }
+          dateBar.style.display = "flex";
+          dateBar.innerHTML = dHtml;
+        } else {
+          dateBar.style.display = "none";
+        }
+      }
+
+      if (currentDateFilter !== "ALL") {
+        filtered = filtered.filter((item) => (item.dateStr || formatDateOnly(item.time)) === currentDateFilter);
+      }
+
       if (searchQuery) {
         filtered = filtered.filter((item) => {
           const hay = `${item.appName} ${item.packageName} ${item.title} ${getDisplayBody(item)} ${item.dateStr}`.toLowerCase();
@@ -2704,11 +2778,11 @@
               Chưa có thông báo nào trong mục này
             </div>
             <div style="font-size:12.5px;margin-bottom:16px;">
-              Nhấn <strong>🔄 Đồng bộ</strong> để kéo dữ liệu từ Google Drive hoặc nạp dữ liệu mẫu để trải nghiệm ngay.
+              ${currentDateFilter !== "ALL" ? `Không có thông báo trong ngày ${escapeHtml(currentDateFilter)}. ` : ""}Nhấn <strong>🔄 Đồng bộ</strong> để kéo dữ liệu từ Google Drive hoặc xem tất cả các ngày.
             </div>
             <div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap;">
+              ${currentDateFilter !== "ALL" ? `<button class="btn btn-primary" style="flex:0 0 auto;" onclick="selectDateFilter('ALL')">📅 Xem tất cả các ngày</button>` : ""}
               <button class="btn btn-primary" style="flex:0 0 auto;" onclick="syncNow(true)">🔄 Đồng bộ Google Drive</button>
-              <button class="btn" style="flex:0 0 auto;" onclick="seedSampleDataIfNeeded(true)">✨ Nạp thông báo mẫu</button>
             </div>
           </div>
         `;
@@ -2716,7 +2790,7 @@
       }
 
       const htmlParts = [];
-      if (currentTab === "media" && filtered.length > 0) {
+      if (currentTab === "media") {
         htmlParts.push(renderPhotoGalleryGridHtml(filtered));
       }
 
@@ -2724,15 +2798,15 @@
         const threads = groupNotificationsIntoThreads(filtered);
         htmlParts.push(`
           <div class="date-group-header">
-            <span>Đang gom ${filtered.length} thông báo thành ${threads.length} cuộc hội thoại</span>
+            <span>Đang gom ${filtered.length} thông báo thành ${threads.length} cuộc hội thoại (Chạm vào thẻ để xem toàn bộ tin nhắn trước đó)</span>
           </div>
         `);
-        for (const th of threads.slice(0, 180)) {
+        for (const th of threads.slice(0, visibleRenderLimit)) {
           htmlParts.push(renderNotificationCardHtml(th.latest, th));
         }
       } else {
         let lastDateHeader = "";
-        for (const item of filtered.slice(0, 250)) {
+        for (const item of filtered.slice(0, visibleRenderLimit)) {
           const dHeader = getFriendlyDateHeader(item.time);
           if (dHeader !== lastDateHeader) {
             lastDateHeader = dHeader;
@@ -2743,6 +2817,19 @@
             `);
           }
           htmlParts.push(renderNotificationCardHtml(item, null));
+        }
+        if (filtered.length > visibleRenderLimit) {
+          const remaining = filtered.length - visibleRenderLimit;
+          htmlParts.push(`
+            <div style="display:flex;gap:8px;justify-content:center;margin:14px 0 8px 0;flex-wrap:wrap;">
+              <button class="btn btn-primary" style="flex:1;max-width:260px;" onclick="loadMoreNotifications()">
+                ⬇️ Xem thêm 350 tin cũ hơn (Còn ${remaining} tin)
+              </button>
+              <button class="btn" style="flex:0 0 auto;width:auto;" onclick="showAllNotificationsNow()">
+                📜 Hiện tất cả (${filtered.length})
+              </button>
+            </div>
+          `);
         }
       }
       container.innerHTML = htmlParts.join("");
@@ -2848,9 +2935,49 @@
       `;
     }
 
+    function openDriveFolderExternal() {
+      const folderId = getDriveFolderId();
+      const url = `https://drive.google.com/drive/folders/${encodeURIComponent(folderId)}`;
+      if (IS_ANDROID_NATIVE && window.AndroidNative.openExternalUrl) {
+        try {
+          window.AndroidNative.openExternalUrl(url);
+          return;
+        } catch (e) {}
+      }
+      window.open(url, "_blank", "noopener");
+    }
+
+    function saveAllPhotosToDevice() {
+      if (IS_ANDROID_NATIVE && window.AndroidNative.saveAllPhotosToGallery) {
+        try {
+          const count = window.AndroidNative.saveAllPhotosToGallery();
+          showToast(`💾 Đã xuất ${count} ảnh ra Bộ sưu tập máy (Album Pictures/NotiStar)!`);
+          return;
+        } catch (e) {}
+      }
+      exportBackupJson();
+    }
+
+    function saveCurrentLightboxPhoto() {
+      if (!currentLightboxSrc) return;
+      if (IS_ANDROID_NATIVE && window.AndroidNative.saveBase64PhotoToGallery) {
+        try {
+          const ok = window.AndroidNative.saveBase64PhotoToGallery(currentLightboxSrc, `NotiStar_${Date.now()}.jpg`);
+          if (ok) return;
+        } catch (e) {}
+      }
+      const a = document.createElement("a");
+      a.href = currentLightboxSrc;
+      a.download = `NotiStar_Photo_${Date.now()}.jpg`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      showToast("💾 Đã tải ảnh về máy!");
+    }
+
     function renderPhotoGalleryGridHtml(mediaItems) {
       const cells = [];
-      for (const item of mediaItems.slice(0, 60)) {
+      for (const item of mediaItems.slice(0, 120)) {
         const b64 = getItemMediaB64(item);
         if (!b64) continue;
         const src = formatB64Src(b64);
@@ -2862,14 +2989,27 @@
         `);
       }
       if (cells.length === 0) return "";
+      const folderId = getDriveFolderId();
       return `
-        <div class="mgmt-section" style="padding:14px;">
-          <div class="mgmt-section-title" style="font-size:14px;margin-bottom:10px;">
-            <span>Bộ sưu tập Ảnh đính kèm (${cells.length})</span>
+        <div class="mgmt-section" style="padding:14px;border-color:rgba(10,132,255,0.35);background:linear-gradient(145deg, rgba(10,132,255,0.12), rgba(28,28,30,0.92));">
+          <div class="mgmt-section-title" style="font-size:14.5px;margin-bottom:6px;">
+            <span>☁️ Vị trí Lưu Hình ảnh trên Google Drive (${cells.length} ảnh)</span>
             <label class="smart-chip" style="color:#64D2FF;cursor:pointer;margin:0;">
-              + Thêm ảnh iOS
+              + Thêm ảnh
               <input type="file" accept="image/*" style="display:none;" onchange="handleQuickIosPhotoUpload(event)" />
             </label>
+          </div>
+          <p class="mgmt-section-sub" style="margin-bottom:10px;font-size:12px;">
+            • Toàn bộ ảnh thông báo (Zalo, Telegram, Messenger...) được mã hóa giữ nguyên gốc bên trong tệp <strong><code>notistar_cloud_backup.json</code></strong> (và thư mục con <strong><code>NotiStar_Photos</code></strong>) tại Thư mục Google Drive ID: <code>${escapeHtml(folderId)}</code>.<br/>
+            • Chạm vào bất kỳ ảnh nào bên dưới để phóng to hoặc xuất thẳng thành tệp <strong>.JPG</strong> vào Album ảnh của điện thoại:
+          </p>
+          <div class="btn-row" style="margin-top:0;margin-bottom:12px;">
+            <button class="btn btn-primary" onclick="openDriveFolderExternal()">
+              📂 Mở Thư mục Google Drive
+            </button>
+            <button class="btn btn-success" onclick="saveAllPhotosToDevice()">
+              💾 Lưu tất cả ${cells.length} ảnh về Máy (.JPG)
+            </button>
           </div>
           <div class="photo-gallery-grid">${cells.join("")}</div>
         </div>
@@ -2996,11 +3136,38 @@
       const box = document.getElementById("detailModalContent");
       if (!box) return;
 
-      // Tìm toàn bộ hội thoại cùng người gửi / cùng ứng dụng
-      const related = allNotifications
-        .filter((n) => (n.packageName || n.appName) === (item.packageName || item.appName) && n.title === item.title)
-        .sort((a, b) => a.time - b.time);
+      // Kết hợp lịch sử trên Cloud + SQLite trên máy Android (nếu có) cho cuộc hội thoại / nhóm này
+      const threadMap = new Map();
+      for (const n of allNotifications) {
+        if (isSameConversationThread(n, item)) {
+          threadMap.set(n.uid || computeNotificationUid(n), n);
+        }
+      }
 
+      if (IS_ANDROID_NATIVE && window.AndroidNative.getConversationHistoryJson) {
+        try {
+          const rawHist = window.AndroidNative.getConversationHistoryJson(
+            String(item.packageName || ""),
+            String(item.title || "")
+          );
+          if (rawHist) {
+            const parsedHist = JSON.parse(rawHist);
+            if (Array.isArray(parsedHist)) {
+              for (const rawItem of parsedHist) {
+                const normItem = normalizeNotification(rawItem);
+                const ex = threadMap.get(normItem.uid);
+                if (!ex) {
+                  threadMap.set(normItem.uid, normItem);
+                } else if (normItem.pictureB64 && !ex.pictureB64) {
+                  ex.pictureB64 = normItem.pictureB64;
+                }
+              }
+            }
+          }
+        } catch (e) {}
+      }
+
+      const related = Array.from(threadMap.values()).sort((a, b) => a.time - b.time);
       const threadItems = related.length > 0 ? related : [item];
       const bubblesHtml = threadItems.map((m) => {
         const mBody = getDisplayBody(m);
@@ -3010,10 +3177,11 @@
           : "";
         const activeCls = m.uid === item.uid ? "active-bubble" : "";
         const revCls = m.isRevoked ? "revoked-bubble" : "";
+        const senderSub = m.title && m.title !== item.title ? `<strong>${escapeHtml(m.title)}</strong> • ` : "";
         return `
           <div class="chat-bubble ${activeCls} ${revCls}">
             <div class="chat-bubble-meta">
-              <span>${escapeHtml(m.appName)} ${m.isRevoked ? "• <strong style='color:#FF6961;'>Đã thu hồi</strong>" : ""}</span>
+              <span>${senderSub}${escapeHtml(m.appName)} ${m.isRevoked ? "• <strong style='color:#FF6961;'>Đã thu hồi</strong>" : ""}</span>
               <span>${formatDateTime(m.time)}</span>
             </div>
             <div class="chat-bubble-text selectable">${escapeHtml(mBody)}</div>
@@ -3545,11 +3713,10 @@
     }
 
     function openLightbox(src) {
+      currentLightboxSrc = src || "";
       const overlay = document.getElementById("lightboxOverlay");
       const img = document.getElementById("lightboxImg");
-      const dl = document.getElementById("lightboxDownloadBtn");
       if (img) img.src = src;
-      if (dl) dl.href = src;
       if (overlay) overlay.classList.add("open");
     }
 
@@ -4060,12 +4227,14 @@
         });
       }
 
-      // Nếu chạy trên Android Native, nạp trực tiếp từ SQLite Database của máy (< 15ms)
+      // Tải dữ liệu Offline từ IndexedDB trước (cả iOS và Android) và chuẩn hóa lại UID mới
+      const cachedItems = await loadAllFromLocalDb();
+      if (cachedItems && cachedItems.length > 0) {
+        allNotifications = cachedItems.map(normalizeNotification);
+      }
+      // Nếu chạy trên Android Native, hợp nhất thêm toàn bộ dữ liệu từ SQLite Database của máy
       if (IS_ANDROID_NATIVE) {
         await syncFromAndroidNativeDb(false);
-      } else {
-        // Tải dữ liệu Offline từ IndexedDB trước để hiển thị tức thì (< 30ms)
-        allNotifications = await loadAllFromLocalDb();
       }
 
       // Tự động dọn sạch trạng thái báo thu hồi nhầm từ bản cũ (1 lần duy nhất)

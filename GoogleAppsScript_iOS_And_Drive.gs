@@ -78,6 +78,11 @@ function doPost(e) {
     // 2. Hợp nhất & khử trùng lặp vào tệp notistar_cloud_backup.json trong Drive Folder
     var mergedResult = mergeIntoDriveBackup(device, items, folderId);
 
+    // 3. Tự động trích xuất và lưu các ảnh đính kèm (pictureB64) thành tệp .JPG riêng vào thư mục con NotiStar_Photos trên Drive
+    try {
+      savePhotosToDriveSubfolder(items, folderId);
+    } catch (photoErr) {}
+
     return jsonResponse({
       status: 'ok',
       syncedCount: items.length,
@@ -237,11 +242,12 @@ function mergeIntoDriveBackup(device, newItems, folderId) {
   var orderKeys = [];
 
   function makeUid(n) {
-    var t = n.time || 0;
+    var dStr = n.dateStr || formatIsoDate(n.time || Date.now());
     var pkg = n.packageName || n.appName || 'app';
-    var title = String(n.title || '').substring(0, 40);
-    var body = String(n.bigText || n.contentText || '').substring(0, 60);
-    return pkg + '_' + t + '_' + title + '_' + body;
+    var title = String(n.title || '').substring(0, 50);
+    var body = String(n.bigText || n.contentText || '').substring(0, 80);
+    var picSig = (n.pictureB64 && n.pictureB64.length > 40) ? String(n.pictureB64).slice(-20) : '';
+    return pkg + '_' + dStr + '_' + title + '_' + body + '_' + picSig;
   }
 
   var allInput = existingItems.concat(newItems || []);
@@ -304,6 +310,35 @@ function mergeIntoDriveBackup(device, newItems, folderId) {
     fileId: file ? file.getId() : '',
     count: combined.length
   };
+}
+
+/**
+ * Lưu các ảnh đính kèm (pictureB64) thành tệp ảnh .JPG riêng biệt bên trong thư mục con `NotiStar_Photos`
+ * thuộc thư mục Google Drive `1LoHXambgX8-b_mbUfBYHvYqQTZA6k0IU`.
+ */
+function savePhotosToDriveSubfolder(items, folderId) {
+  if (!items || items.length === 0) return;
+  var targetFolderId = folderId || DEFAULT_DRIVE_FOLDER_ID;
+  var parentFolder = DriveApp.getFolderById(targetFolderId);
+  var subIter = parentFolder.getFoldersByName('NotiStar_Photos');
+  var photoFolder = subIter.hasNext() ? subIter.next() : parentFolder.createFolder('NotiStar_Photos');
+  var savedCount = 0;
+
+  for (var i = 0; i < items.length; i++) {
+    var n = items[i];
+    if (!n || !n.pictureB64 || n.pictureB64.length < 100) continue;
+    if (savedCount >= 8) break;
+    var safeApp = String(n.appName || 'App').replace(/[^a-zA-Z0-9_-]/g, '');
+    var ts = n.time || Date.now();
+    var fileName = 'NotiStar_' + safeApp + '_' + ts + '.jpg';
+    if (!photoFolder.getFilesByName(fileName).hasNext()) {
+      var cleanB64 = String(n.pictureB64).replace(/^data:image\/\w+;base64,/, '');
+      var bytes = Utilities.base64Decode(cleanB64);
+      var blob = Utilities.newBlob(bytes, 'image/jpeg', fileName);
+      photoFolder.createFile(blob);
+      savedCount++;
+    }
+  }
 }
 
 /**
