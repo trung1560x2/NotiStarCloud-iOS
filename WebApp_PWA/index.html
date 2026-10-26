@@ -1656,14 +1656,20 @@
 
       <hr style="border:none;border-top:1px solid var(--border-subtle);margin:16px 0;" />
 
-      <div class="form-label">📦 Sao lưu &amp; Khôi phục Tệp trực tiếp trên iPhone (Tệp / Files)</div>
+      <div class="form-label">📦 Sao lưu Theo Ngày (`notistar_backup_YYYY-MM-DD.json`) — Không giới hạn 2.000 tin</div>
       <div class="btn-row">
-        <button class="btn btn-success" onclick="exportBackupJson()">⬇️ Xuất .JSON</button>
-        <button class="btn" onclick="exportBackupCsv()">📊 Xuất .CSV (Excel)</button>
+        <button class="btn btn-success" onclick="exportAllDailyBackupsSeparate()">📅 Xuất Mỗi Ngày 1 File (.JSON)</button>
+        <button class="btn" onclick="exportBackupJson()">⬇️ Xuất Gộp</button>
+        <button class="btn" onclick="exportBackupCsv()">📊 Xuất .CSV</button>
         <label class="btn" style="cursor:pointer;">
           📂 Nhập .JSON
           <input type="file" accept=".json,application/json" style="display:none;" onchange="importBackupJsonFile(event)" />
         </label>
+      </div>
+      <div class="btn-row" style="margin-top:8px;">
+        <button class="btn btn-primary" onclick="copyAppsScriptV2Code()">
+          📋 Copy Mã Google Apps Script V2 (Mỗi ngày 1 File trên Drive &amp; Bỏ giới hạn 2k)
+        </button>
       </div>
 
       <hr style="border:none;border-top:1px solid var(--border-subtle);margin:16px 0;" />
@@ -1733,8 +1739,8 @@
       OTA_VERSION: "notistar_ios_ota_version_code",
       CLEANED_V3: "notistar_ios_cleaned_false_revoked_v3"
     };
-    const CURRENT_OTA_VERSION_CODE = 10;
-    const CURRENT_OTA_VERSION_NAME = "9.5.0-iOS18";
+    const CURRENT_OTA_VERSION_CODE = 11;
+    const CURRENT_OTA_VERSION_NAME = "9.6.0-iOS18";
 
     const IDB_NAME = "NotiStarCloud_iOS_DB";
     const IDB_VERSION = 1;
@@ -1761,7 +1767,7 @@
     async function syncFromAndroidNativeDb(showToastMsg = false) {
       if (!IS_ANDROID_NATIVE) return 0;
       try {
-        const rawJson = window.AndroidNative.getLocalNotificationsJson(1200);
+        const rawJson = window.AndroidNative.getLocalNotificationsJson(15000);
         if (rawJson) {
           const parsed = JSON.parse(rawJson);
           if (Array.isArray(parsed) && parsed.length > 0) {
@@ -2055,7 +2061,7 @@
     }
 
     async function saveAllToLocalDb(items) {
-      const sorted = [...items].sort((a, b) => b.time - a.time).slice(0, 2000);
+      const sorted = [...items].sort((a, b) => b.time - a.time).slice(0, 50000);
       allNotifications = sorted;
 
       try {
@@ -2270,13 +2276,98 @@
       return false;
     }
 
+    function getGroupedDailyNotificationsMap() {
+      const byDate = new Map();
+      for (const n of allNotifications) {
+        const dStr = n.dateStr || formatDateOnly(n.time);
+        if (!byDate.has(dStr)) byDate.set(dStr, []);
+        byDate.get(dStr).push(n);
+      }
+      return byDate;
+    }
+
+    async function pushDailyFileToCloud(dateStr) {
+      const byDate = getGroupedDailyNotificationsMap();
+      const dayItems = byDate.get(dateStr) || [];
+      if (dayItems.length === 0) {
+        showToast(`Không có thông báo nào trong ngày ${dateStr}`);
+        return;
+      }
+      showToast(`⏳ Đang đẩy tệp notistar_backup_${dateStr}.json (${dayItems.length} tin) lên Google Drive...`);
+      await pushItemsToCloud(dayItems, true);
+    }
+
+    function exportDailyBackupJson(dateStr) {
+      const byDate = getGroupedDailyNotificationsMap();
+      const dayItems = byDate.get(dateStr) || [];
+      if (dayItems.length === 0) {
+        showToast(`Không có dữ liệu ngày ${dateStr}`);
+        return;
+      }
+      const fileName = `notistar_backup_${dateStr}.json`;
+      const backupObj = {
+        status: "ok",
+        app: "NotiStarCloud",
+        version: 2,
+        storageMode: "daily_file",
+        date: dateStr,
+        fileName: fileName,
+        device: getDeviceName(),
+        exportTime: Date.now(),
+        exportDate: new Date().toISOString(),
+        count: dayItems.length,
+        notifications: dayItems
+      };
+      const blob = new Blob([JSON.stringify(backupObj, null, 2)], { type: "application/json;charset=utf-8" });
+      triggerFileDownload(blob, fileName);
+      showToast(`⬇️ Đã xuất tệp ${fileName} (${dayItems.length} thông báo)!`);
+    }
+
+    function exportAllDailyBackupsSeparate() {
+      const byDate = getGroupedDailyNotificationsMap();
+      const dates = Array.from(byDate.keys()).sort().reverse();
+      if (dates.length === 0) {
+        showToast("Chưa có dữ liệu để xuất!");
+        return;
+      }
+      dates.forEach((dStr, idx) => {
+        setTimeout(() => {
+          exportDailyBackupJson(dStr);
+        }, idx * 450);
+      });
+      showToast(`📦 Đang xuất ${dates.length} tệp riêng biệt theo từng ngày (notistar_backup_YYYY-MM-DD.json)...`);
+    }
+
+    function copyAppsScriptV2Code() {
+      if (IS_ANDROID_NATIVE && window.AndroidNative.copyGoogleAppsScriptV2) {
+        try {
+          window.AndroidNative.copyGoogleAppsScriptV2();
+          return;
+        } catch (e) {}
+      }
+      fetch("./GoogleAppsScript_iOS_And_Drive.gs")
+        .then((r) => r.text())
+        .then((code) => {
+          copyTextToClipboard(code, "📋 Đã sao chép Mã Google Apps Script V2 (Mỗi ngày 1 file & Không giới hạn 2.000 tin)!");
+        })
+        .catch(() => {
+          showToast("⚠️ Không thể tải tệp script mẫu");
+        });
+    }
+
     async function pushAllToCloud() {
       if (allNotifications.length === 0) {
         showToast("Chưa có thông báo nào để đẩy lên Drive!");
         return;
       }
-      showToast("⏳ Đang đẩy toàn bộ dữ liệu lên Google Drive...");
-      await pushItemsToCloud(allNotifications.slice(0, 500), true);
+      const byDate = getGroupedDailyNotificationsMap();
+      const dates = Array.from(byDate.keys()).sort();
+      showToast(`⏳ Đang đồng bộ ${allNotifications.length} thông báo (${dates.length} tệp theo ngày) lên Google Drive...`);
+      for (const dStr of dates) {
+        const dayItems = byDate.get(dStr) || [];
+        await pushItemsToCloud(dayItems, false);
+      }
+      showToast(`☁️ Đã đẩy toàn bộ ${allNotifications.length} thông báo (${dates.length} ngày) lên Google Drive!`);
     }
 
     function setSyncStatus(text, isOnline) {
@@ -3638,6 +3729,48 @@
             Ẩn bớt các ứng dụng không quan trọng hoặc xóa toàn bộ thông báo của từng ứng dụng:
           </p>
           <div>${appRowsHtml || `<div style="color:var(--text-secondary);font-size:13px;">Chưa có ứng dụng nào.</div>`}</div>
+        </div>
+
+        <div class="mgmt-section" style="border-color:rgba(48,209,88,0.4);background:linear-gradient(145deg, rgba(48,209,88,0.10), rgba(28,28,30,0.94));">
+          <div class="mgmt-section-title">
+            <span>📅 Kho Sao lưu Theo Ngày (Mỗi ngày 1 File)</span>
+            <span class="pill-badge badge-bank-in">Không giới hạn 2k</span>
+          </div>
+          <p class="mgmt-section-sub">
+            • Đã nâng cấp lên cơ chế <strong>Mỗi ngày 1 tệp riêng biệt (<code>notistar_backup_YYYY-MM-DD.json</code>)</strong> và <strong>gỡ bỏ hoàn toàn giới hạn 2.000 tin nhắn</strong> (hỗ trợ lưu trữ không giới hạn số ngày, tối đa 50.000+ tin nhắn trên máy &amp; 20.000 tin/ngày trên Drive):
+          </p>
+          <div style="margin-bottom:10px;">
+            ${Array.from(getGroupedDailyNotificationsMap().entries()).sort((a, b) => b[0].localeCompare(a[0])).map(([dStr, list]) => {
+              const pCnt = list.filter(hasMedia).length;
+              return `
+                <div class="app-mgmt-row" style="padding:8px 0;">
+                  <div class="app-mgmt-info">
+                    <div class="app-mgmt-name" style="font-family:monospace;font-size:13px;color:#64D2FF;">📄 notistar_backup_${escapeHtml(dStr)}.json</div>
+                    <div class="app-mgmt-meta">Ngày ${escapeHtml(dStr)} • <strong>${list.length}</strong> tin nhắn • 🖼️ <strong>${pCnt}</strong> ảnh</div>
+                  </div>
+                  <button class="smart-chip" style="color:#30D158;border-color:rgba(48,209,88,0.4);" onclick="exportDailyBackupJson('${escapeAttr(dStr)}')">
+                    ⬇️ Tải file
+                  </button>
+                  <button class="smart-chip" style="color:#64D2FF;border-color:rgba(10,132,255,0.4);" onclick="pushDailyFileToCloud('${escapeAttr(dStr)}')">
+                    ☁️ Đẩy Drive
+                  </button>
+                </div>
+              `;
+            }).join("")}
+          </div>
+          <div class="btn-row" style="margin-top:6px;">
+            <button class="btn btn-success" onclick="exportAllDailyBackupsSeparate()">
+              📦 Xuất tất cả các ngày (Mỗi ngày 1 File .JSON)
+            </button>
+            <button class="btn btn-primary" onclick="openDriveFolderExternal()">
+              📂 Mở Thư mục Drive
+            </button>
+          </div>
+          <div class="btn-row" style="margin-top:8px;">
+            <button class="btn" onclick="copyAppsScriptV2Code()">
+              📋 Copy Mã Google Apps Script V2 (Tự tách mỗi ngày 1 file trên Drive)
+            </button>
+          </div>
         </div>
 
         <div class="mgmt-section">

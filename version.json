@@ -1,11 +1,11 @@
 {
-  "versionCode": 10,
-  "androidVersionCode": 10,
-  "versionName": "9.5.0-iOS18",
-  "updatedAt": "2026-10-26T17:08:00+07:00",
+  "versionCode": 11,
+  "androidVersionCode": 11,
+  "versionName": "9.6.0-iOS18",
+  "updatedAt": "2026-10-26T21:28:00+07:00",
   "resetFalseRevokedVersion": 3,
   "forceSnapshotReload": true,
   "androidApkUrl": "https://trung1560x2.github.io/NotiStarCloud-iOS/NotiStarCloud_OneUI7_AutoDrive.apk",
   "iosWebAppUrl": "https://trung1560x2.github.io/NotiStarCloud-iOS/",
-  "changelog": "• Cập nhật v9.5.0-iOS18 (Khôi phục đầy đủ Lịch sử tin nhắn các ngày trước & Quản lý Kho Ảnh Google Drive):\n• [Lịch sử Tin nhắn các ngày trước] Sửa lỗi tràn bộ nhớ đệm 2MB CursorWindow trên Android và gộp đầy đủ 1.042+ tin nhắn lịch sử (từ 22/10 đến 26/10) kèm bộ lọc nhanh 📅 Xem theo Ngày và nút Xem thêm tin cũ\n• [Khử trùng lặp Telegram thông minh] Ngăn Telegram đẩy lại hàng nghìn thông báo nhóm chưa đọc làm trôi mất tin nhắn cũ\n• [Dòng thời gian Hội thoại & Nhóm] Chạm vào bất kỳ tin nhắn nào để xem toàn bộ tin nhắn trước đó của người gửi hoặc cả nhóm chat Telegram/Zalo\n• [Kho Ảnh Google Drive & Lưu về Máy] Hiển thị rõ vị trí lưu 98+ ảnh trên Google Drive (notistar_cloud_backup.json & thư mục NotiStar_Photos) kèm nút 1-chạm Lưu tất cả ảnh .JPG về Bộ sưu tập máy (Pictures/NotiStar)"
+  "changelog": "• Cập nhật v9.6.0-iOS18 (Tách riêng Mỗi ngày 1 File Sao lưu & Gỡ bỏ hoàn toàn giới hạn 2.000 tin nhắn):\n• [Mỗi ngày 1 File Sao lưu] Chuyển sang kiến trúc lưu trữ theo ngày (notistar_backup_YYYY-MM-DD.json) trên Google Drive, tự động tách tệp cũ sang từng tệp theo ngày để dữ liệu các ngày trước không bao giờ bị ghi đè\n• [Bỏ giới hạn 2.000 tin nhắn] Nâng dung lượng lưu trữ lên 50.000+ tin nhắn trên máy, 20.000 tin/ngày trên Drive, không giới hạn tổng số ngày lưu trữ (Retention = Vĩnh viễn)\n• [Quản lý File Theo Ngày ngay trong App] Bổ sung mục 📅 Kho Sao lưu Theo Ngày trong tab Quản lý cho phép xem, tải riêng từng file notistar_backup_YYYY-MM-DD.json hoặc đẩy từng ngày lên Google Drive chỉ với 1 chạm"
 }

@@ -1,0 +1,21 @@
+{
+  "app": "NotiStarCloud",
+  "version": 2,
+  "storageMode": "daily_files_unlimited",
+  "maxItemsPerDay": 20000,
+  "totalCount": 1042,
+  "dailyFiles": [
+    {
+      "date": "2026-10-26",
+      "fileName": "notistar_backup_2026-10-26.json",
+      "count": 692,
+      "photosCount": 70
+    },
+    {
+      "date": "2026-10-22",
+      "fileName": "notistar_backup_2026-10-22.json",
+      "count": 350,
+      "photosCount": 28
+    }
+  ]
+}
