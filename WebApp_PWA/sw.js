@@ -4,7 +4,7 @@
  * - Đồng thời tự động tải ngầm bản mới nhất từ mạng để cập nhật Cache & kiểm tra version.json trực tiếp.
  */
 
-const CACHE_NAME = "notistar-ios-ota-v10";
+const CACHE_NAME = "notistar-ios-ota-v11";
 const APP_SHELL_ASSETS = [
   "./",
   "./index.html",

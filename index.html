@@ -1137,23 +1137,111 @@
     .lightbox-overlay {
       position: fixed;
       inset: 0;
-      background: rgba(0, 0, 0, 0.94);
-      backdrop-filter: blur(20px);
-      -webkit-backdrop-filter: blur(20px);
+      background: rgba(0, 0, 0, 0.96);
+      backdrop-filter: blur(22px);
+      -webkit-backdrop-filter: blur(22px);
       z-index: 180;
       display: none;
       flex-direction: column;
       align-items: center;
-      justify-content: center;
-      padding: 20px;
+      justify-content: space-between;
+      padding: calc(var(--safe-top) + 10px) 10px calc(var(--safe-bottom) + 14px) 10px;
     }
     .lightbox-overlay.open { display: flex; }
-    .lightbox-overlay img {
+    .lightbox-top-bar {
+      width: 100%;
+      max-width: 680px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      padding: 4px 6px;
+      flex-shrink: 0;
+    }
+    .lightbox-res-badge {
+      font-size: 11.5px;
+      font-weight: 600;
+      color: #64D2FF;
+      background: rgba(10, 132, 255, 0.16);
+      border: 0.5px solid rgba(10, 132, 255, 0.4);
+      padding: 4px 10px;
+      border-radius: 999px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .lightbox-viewport {
+      width: 100%;
+      flex: 1;
+      min-height: 0;
+      overflow: auto;
+      display: flex;
+      align-items: safe center;
+      justify-content: safe center;
+      padding: 6px 2px;
+      -webkit-overflow-scrolling: touch;
+    }
+    .lightbox-viewport img {
       max-width: 96vw;
-      max-height: 76dvh;
-      border-radius: 18px;
+      max-height: 72dvh;
+      width: auto;
+      height: auto;
+      border-radius: 14px;
       object-fit: contain;
-      box-shadow: 0 12px 40px rgba(0,0,0,0.7);
+      box-shadow: 0 12px 40px rgba(0,0,0,0.75);
+      transition: width 0.18s ease;
+    }
+    .lightbox-viewport.mode-width100 {
+      align-items: flex-start;
+    }
+    .lightbox-viewport.mode-width100 img {
+      width: 94vw;
+      max-width: 640px;
+      max-height: none;
+      height: auto;
+    }
+    .lightbox-viewport.mode-zoom2x {
+      align-items: flex-start;
+      justify-content: flex-start;
+    }
+    .lightbox-viewport.mode-zoom2x img {
+      width: 175vw;
+      max-width: none;
+      max-height: none;
+      height: auto;
+    }
+    .lightbox-viewport.mode-zoom3x {
+      align-items: flex-start;
+      justify-content: flex-start;
+    }
+    .lightbox-viewport.mode-zoom3x img {
+      width: 260vw;
+      max-width: none;
+      max-height: none;
+      height: auto;
+    }
+    .lightbox-zoom-bar {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+      justify-content: center;
+      margin-top: 6px;
+      flex-shrink: 0;
+    }
+    .lb-zoom-pill {
+      padding: 6px 11px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 600;
+      border: 0.5px solid rgba(255,255,255,0.18);
+      background: rgba(255,255,255,0.09);
+      color: #EBEBF5;
+      cursor: pointer;
+    }
+    .lb-zoom-pill.active {
+      background: #0A84FF;
+      border-color: #64D2FF;
+      color: #FFFFFF;
     }
 
     .toast-box {
@@ -1360,13 +1448,27 @@
     </div>
   </div>
 
-  <!-- Fullscreen Photo Lightbox -->
+  <!-- Fullscreen HD Photo Lightbox with Tall-Screenshot Reader & Super-Resolution Sharpening -->
   <div id="lightboxOverlay" class="lightbox-overlay" onclick="closeLightbox()">
-    <img id="lightboxImg" src="" alt="Preview" onclick="event.stopPropagation()" />
-    <div style="display:flex;gap:10px;margin-top:16px;flex-wrap:wrap;justify-content:center;" onclick="event.stopPropagation()">
-      <button class="btn btn-primary" style="flex:0 0 auto;width:auto;" onclick="saveCurrentLightboxPhoto()">💾 Lưu ảnh về Máy (Album NotiStar)</button>
-      <button class="btn" style="flex:0 0 auto;width:auto;" onclick="openDriveFolderExternal()">📂 Mở Google Drive</button>
-      <button class="btn" style="flex:0 0 auto;width:auto;" onclick="closeLightbox()">Đóng</button>
+    <div class="lightbox-top-bar" onclick="event.stopPropagation()">
+      <span id="lightboxResBadge" class="lightbox-res-badge">📐 Đang tải ảnh...</span>
+      <button class="lb-zoom-pill" id="btnEnhanceHd" style="border-color:rgba(48,209,88,0.55);color:#30D158;" onclick="enhanceCurrentLightboxPhotoHd()">
+        ✨ Làm nét HD 2x
+      </button>
+    </div>
+    <div id="lightboxViewport" class="lightbox-viewport" onclick="event.stopPropagation()">
+      <img id="lightboxImg" src="" alt="Preview" onclick="cycleLightboxZoom()" />
+    </div>
+    <div class="lightbox-zoom-bar" onclick="event.stopPropagation()">
+      <button class="lb-zoom-pill active" id="lbModeFit" onclick="setLightboxZoomMode('fit')">🖼️ Vừa khung</button>
+      <button class="lb-zoom-pill" id="lbModeWidth100" onclick="setLightboxZoomMode('width100')">↔️ Rộng 100% (Đọc chữ)</button>
+      <button class="lb-zoom-pill" id="lbModeZoom2x" onclick="setLightboxZoomMode('zoom2x')">🔍 Zoom 2x</button>
+      <button class="lb-zoom-pill" id="lbModeZoom3x" onclick="setLightboxZoomMode('zoom3x')">🔍 Zoom 3x</button>
+    </div>
+    <div style="display:flex;gap:8px;margin-top:8px;flex-wrap:wrap;justify-content:center;flex-shrink:0;" onclick="event.stopPropagation()">
+      <button class="btn btn-primary" style="flex:0 0 auto;width:auto;padding:9px 14px;" onclick="saveCurrentLightboxPhoto()">💾 Lưu ảnh về Máy (Album NotiStar)</button>
+      <button class="btn" style="flex:0 0 auto;width:auto;padding:9px 14px;" onclick="openDriveFolderExternal()">📂 Mở Google Drive</button>
+      <button class="btn" style="flex:0 0 auto;width:auto;padding:9px 14px;" onclick="closeLightbox()">Đóng</button>
     </div>
   </div>
 
@@ -1739,8 +1841,8 @@
       OTA_VERSION: "notistar_ios_ota_version_code",
       CLEANED_V3: "notistar_ios_cleaned_false_revoked_v3"
     };
-    const CURRENT_OTA_VERSION_CODE = 13;
-    const CURRENT_OTA_VERSION_NAME = "9.8.0-iOS18";
+    const CURRENT_OTA_VERSION_CODE = 14;
+    const CURRENT_OTA_VERSION_NAME = "9.9.0-iOS18";
     const INITIAL_RENDER_LIMIT = 60;
 
     const IDB_NAME = "NotiStarCloud_iOS_DB";
@@ -3652,13 +3754,16 @@
         const img = new Image();
         img.onload = async () => {
           const canvas = document.createElement("canvas");
-          const maxDim = 640;
-          const scale = Math.min(maxDim / img.width, maxDim / img.height, 1);
-          canvas.width = Math.round(img.width * scale);
-          canvas.height = Math.round(img.height * scale);
+          const shortEdge = Math.min(img.width, img.height) || 1;
+          const longEdge = Math.max(img.width, img.height) || 1;
+          const scale = Math.min(1080 / shortEdge, 4096 / longEdge, 1);
+          canvas.width = Math.max(1, Math.round(img.width * scale));
+          canvas.height = Math.max(1, Math.round(img.height * scale));
           const ctx = canvas.getContext("2d");
+          ctx.imageSmoothingEnabled = true;
+          ctx.imageSmoothingQuality = "high";
           ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-          const b64 = canvas.toDataURL("image/jpeg", 0.82).split(",")[1];
+          const b64 = canvas.toDataURL("image/jpeg", 0.92).split(",")[1];
           const now = Date.now();
           const newItem = normalizeNotification({
             id: now,
@@ -4064,11 +4169,125 @@
       showToast(successMsg);
     }
 
+    let currentLightboxZoomMode = "fit";
+    let currentLightboxEnhanced = false;
+
+    function setLightboxZoomMode(mode) {
+      currentLightboxZoomMode = mode;
+      const vp = document.getElementById("lightboxViewport");
+      if (vp) {
+        vp.classList.remove("mode-width100", "mode-zoom2x", "mode-zoom3x");
+        if (mode !== "fit") vp.classList.add(`mode-${mode}`);
+      }
+      document.getElementById("lbModeFit")?.classList.toggle("active", mode === "fit");
+      document.getElementById("lbModeWidth100")?.classList.toggle("active", mode === "width100");
+      document.getElementById("lbModeZoom2x")?.classList.toggle("active", mode === "zoom2x");
+      document.getElementById("lbModeZoom3x")?.classList.toggle("active", mode === "zoom3x");
+    }
+
+    function cycleLightboxZoom() {
+      const order = ["fit", "width100", "zoom2x", "zoom3x"];
+      const next = order[(order.indexOf(currentLightboxZoomMode) + 1) % order.length];
+      setLightboxZoomMode(next);
+    }
+
+    function applyUnsharpMaskOnCanvas(ctx, w, h, amount = 0.58) {
+      try {
+        const srcData = ctx.getImageData(0, 0, w, h);
+        const src = srcData.data;
+        const outData = ctx.createImageData(w, h);
+        const dst = outData.data;
+        // 3x3 Sharpen + Contrast boost kernel for crisp chat text
+        for (let y = 1; y < h - 1; y++) {
+          const row = y * w;
+          for (let x = 1; x < w - 1; x++) {
+            const idx = (row + x) * 4;
+            const up = ((y - 1) * w + x) * 4;
+            const dn = ((y + 1) * w + x) * 4;
+            const lf = (row + (x - 1)) * 4;
+            const rt = (row + (x + 1)) * 4;
+            for (let c = 0; c < 3; c++) {
+              const center = src[idx + c];
+              const blur = (src[up + c] + src[dn + c] + src[lf + c] + src[rt + c]) * 0.25;
+              const val = center + (center - blur) * (amount * 2.2);
+              dst[idx + c] = val < 0 ? 0 : (val > 255 ? 255 : val);
+            }
+            dst[idx + 3] = src[idx + 3];
+          }
+        }
+        ctx.putImageData(outData, 0, 0);
+      } catch (e) {}
+    }
+
+    function enhanceCurrentLightboxPhotoHd(silent = false) {
+      const img = document.getElementById("lightboxImg");
+      if (!img || !img.naturalWidth || currentLightboxEnhanced) {
+        if (currentLightboxEnhanced && !silent) showToast("✨ Ảnh đang ở chế độ Làm nét HD 2x!");
+        return;
+      }
+      try {
+        const w = img.naturalWidth;
+        const h = img.naturalHeight;
+        const scale = Math.min(w, h) < 720 ? 2 : 1.5;
+        const targetW = Math.min(Math.round(w * scale), 2160);
+        const targetH = Math.min(Math.round(h * scale), 6000);
+        const canvas = document.createElement("canvas");
+        canvas.width = targetW;
+        canvas.height = targetH;
+        const ctx = canvas.getContext("2d");
+        ctx.imageSmoothingEnabled = true;
+        ctx.imageSmoothingQuality = "high";
+        ctx.filter = "contrast(1.08) saturate(1.05)";
+        ctx.drawImage(img, 0, 0, targetW, targetH);
+        ctx.filter = "none";
+        if (targetW * targetH <= 2600000) {
+          applyUnsharpMaskOnCanvas(ctx, targetW, targetH, 0.62);
+        }
+        const enhancedUrl = canvas.toDataURL("image/jpeg", 0.94);
+        currentLightboxEnhanced = true;
+        currentLightboxSrc = enhancedUrl;
+        img.src = enhancedUrl;
+        const badge = document.getElementById("lightboxResBadge");
+        if (badge) {
+          badge.textContent = `✨ HD Nét Căng: ${targetW} × ${targetH}px (Khử mờ 2x)`;
+        }
+        if (!silent) {
+          showToast(`✨ Đã khử mờ & nâng độ nét lên ${targetW}×${targetH}px!`);
+        }
+      } catch (e) {
+        if (!silent) showToast("⚠️ Không thể xử lý ảnh này");
+      }
+    }
+
     function openLightbox(src) {
       currentLightboxSrc = src || "";
+      currentLightboxEnhanced = false;
       const overlay = document.getElementById("lightboxOverlay");
       const img = document.getElementById("lightboxImg");
-      if (img) img.src = src;
+      const badge = document.getElementById("lightboxResBadge");
+      if (badge) badge.textContent = "📐 Đang đọc ảnh...";
+      setLightboxZoomMode("fit");
+      if (img) {
+        img.onload = () => {
+          const nw = img.naturalWidth || 0;
+          const nh = img.naturalHeight || 0;
+          if (!currentLightboxEnhanced && badge) {
+            const isLowResOld = Math.max(nw, nh) <= 540;
+            badge.textContent = isLowResOld
+              ? `📐 ${nw}×${nh}px (Ảnh cũ nén 520p • Bấm ✨ Làm nét HD)`
+              : `📐 ${nw}×${nh}px • Chuẩn HD`;
+          }
+          // Nếu là ảnh chụp màn hình dài (Tall Screenshot như ảnh Messenger/Zalo), tự động mở Rộng 100% để đọc rõ chữ và cuộn dọc!
+          if (nh > nw * 1.55 && currentLightboxZoomMode === "fit") {
+            setLightboxZoomMode("width100");
+          }
+          // Nếu ảnh cũ có chiều ngang quá nhỏ (< 360px), tự động kích hoạt khử mờ HD 2x ngay lập tức!
+          if (!currentLightboxEnhanced && nw > 0 && nw < 360) {
+            setTimeout(() => enhanceCurrentLightboxPhotoHd(true), 60);
+          }
+        };
+        img.src = src;
+      }
       if (overlay) overlay.classList.add("open");
     }
 

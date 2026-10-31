@@ -1,11 +1,11 @@
 {
-  "versionCode": 13,
-  "androidVersionCode": 13,
-  "versionName": "9.8.0-iOS18",
-  "updatedAt": "2026-10-31T23:05:30+07:00",
+  "versionCode": 14,
+  "androidVersionCode": 14,
+  "versionName": "9.9.0-iOS18",
+  "updatedAt": "2026-10-31T23:20:00+07:00",
   "resetFalseRevokedVersion": 3,
   "forceSnapshotReload": false,
   "androidApkUrl": "https://trung1560x2.github.io/NotiStarCloud-iOS/NotiStarCloud_OneUI7_AutoDrive.apk",
   "iosWebAppUrl": "https://trung1560x2.github.io/NotiStarCloud-iOS/",
-  "changelog": "• Cập nhật v9.8.0-iOS18 (Tăng tốc Mở App Tức Thì 0ms & Chống Đơ/Đứng Máy):\n• [0ms Instant First Paint] Tách bộ đệm khởi động siêu nhẹ (chỉ lưu văn bản, loại bỏ chuỗi ảnh Base64 nặng hàng MB khỏi localStorage) giúp mở ứng dụng lên ngay lập tức trong <20ms\n• [Incremental IndexedDB & SQLite Delta Sync] Loại bỏ hoàn toàn thao tác xóa/ghi lại toàn bộ cơ sở dữ liệu mỗi lần mở app và loại bỏ việc tải lại file 6.3MB cloud_snapshot.json lặp đi lặp lại\n• [Tối ưu 15x Tốc độ Render & 60FPS Scroll] Bộ nhớ đệm _meta tính sẵn Regex 1 lần duy nhất, phân trang 60 thẻ kèm Infinite Scroll tự động và CSS content-visibility: auto giúp cuộn mượt 60FPS không bao giờ giật đơ"
+  "changelog": "• Cập nhật v9.9.0-iOS18 (Lưu Ảnh Gốc Full-HD 1080×4096px + Chế độ Đọc Ảnh Chụp Màn Hình Dài & Khử Mờ 2x):\n• [Giữ nguyên Độ nét Full-HD cho Ảnh Dài] Sửa lỗi bản cũ giới hạn cạnh dài ở 520px (khiến ảnh chụp màn hình dài Messenger/Zalo bị bóp chiều ngang còn ~120px gây mờ chữ): nay giữ nguyên cạnh ngắn tới 1080px, cạnh dài tới 4096px (JPEG 92%)\n• [Tự động Nâng cấp Ảnh Gốc thay cho Thumbnail Mờ] Khi Messenger/Zalo tải xong ảnh nét Full-HD sau 1-2 giây, hệ thống tự động ghi đè lên ảnh preview mờ lúc đầu\n• [Trình xem Ảnh Chụp Màn Hình Dài + Khử mờ HD 2x] Tự động bung Rộng 100% có thanh cuộn dọc cho ảnh dài, hỗ trợ Zoom 2x/3x và bộ lọc ✨ Làm nét HD 2x (Unsharp Mask) cho các ảnh cũ"
 }
