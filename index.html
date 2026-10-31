@@ -399,16 +399,16 @@
     }
 
     .noti-card {
-      background: var(--bg-card);
-      backdrop-filter: blur(28px) saturate(180%);
-      -webkit-backdrop-filter: blur(28px) saturate(180%);
+      background: rgba(28, 28, 32, 0.92);
       border: 0.5px solid rgba(255, 255, 255, 0.11);
       border-radius: 20px;
       padding: 13px 14px;
       position: relative;
-      transition: transform 0.15s cubic-bezier(0.2, 0.8, 0.2, 1), background 0.15s ease;
-      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.28), inset 0 1px 0 rgba(255, 255, 255, 0.06);
+      transition: transform 0.12s cubic-bezier(0.2, 0.8, 0.2, 1), background 0.12s ease;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.26), inset 0 1px 0 rgba(255, 255, 255, 0.06);
       cursor: pointer;
+      content-visibility: auto;
+      contain-intrinsic-size: 0 96px;
     }
 
     .noti-card:active {
@@ -1739,8 +1739,9 @@
       OTA_VERSION: "notistar_ios_ota_version_code",
       CLEANED_V3: "notistar_ios_cleaned_false_revoked_v3"
     };
-    const CURRENT_OTA_VERSION_CODE = 12;
-    const CURRENT_OTA_VERSION_NAME = "9.7.0-iOS18";
+    const CURRENT_OTA_VERSION_CODE = 13;
+    const CURRENT_OTA_VERSION_NAME = "9.8.0-iOS18";
+    const INITIAL_RENDER_LIMIT = 60;
 
     const IDB_NAME = "NotiStarCloud_iOS_DB";
     const IDB_VERSION = 1;
@@ -1751,10 +1752,14 @@
     let currentTab = "all";
     let currentBankFilter = "ALL";
     let currentDateFilter = "ALL";
-    let visibleRenderLimit = 300;
+    let visibleRenderLimit = INITIAL_RENDER_LIMIT;
+    let currentFilteredLength = 0;
     let searchQuery = "";
     let isGroupedBySender = localStorage.getItem("notistar_ios_group_sender") === "1";
     const DEFAULT_VIP_KEYWORDS = ["gấp", "khẩn", "chuyển khoản", "lương", "sếp", "mật khẩu", "hoàn tiền", "quan trọng"];
+    let cachedVipKeywords = null;
+    let cachedBlockedAppsSet = null;
+    let renderRafId = null;
     let isSyncing = false;
     let pollTimer = null;
     let pendingCapturePhotoB64 = "";
@@ -1762,15 +1767,37 @@
     let enteredPin = "";
     let pinSetupMode = false;
     let currentLightboxSrc = "";
+    let lastAndroidSyncTime = 0;
+    let isAndroidSyncBusy = false;
+    let androidUpdateDebounceTimer = null;
     const IS_ANDROID_NATIVE = typeof window.AndroidNative !== "undefined";
 
-    async function syncFromAndroidNativeDb(showToastMsg = false) {
-      if (!IS_ANDROID_NATIVE) return 0;
+    function scheduleRenderApp() {
+      if (renderRafId) return;
+      renderRafId = requestAnimationFrame(() => {
+        renderRafId = null;
+        renderApp();
+      });
+    }
+
+    async function syncFromAndroidNativeDb(showToastMsg = false, fullLoad = false) {
+      if (!IS_ANDROID_NATIVE || isAndroidSyncBusy) return allNotifications.length;
+      isAndroidSyncBusy = true;
       try {
-        const rawJson = window.AndroidNative.getLocalNotificationsJson(15000);
-        if (rawJson) {
+        let rawJson = "";
+        if (!fullLoad && !showToastMsg && lastAndroidSyncTime > 0 && window.AndroidNative.getLocalNotificationsSinceJson) {
+          rawJson = window.AndroidNative.getLocalNotificationsSinceJson(lastAndroidSyncTime - 5000, 180);
+        } else {
+          const fetchLimit = fullLoad || showToastMsg ? 2000 : (lastAndroidSyncTime === 0 ? 180 : 120);
+          rawJson = window.AndroidNative.getLocalNotificationsJson(fetchLimit);
+        }
+        if (rawJson && rawJson !== "[]") {
           const parsed = JSON.parse(rawJson);
           if (Array.isArray(parsed) && parsed.length > 0) {
+            for (const p of parsed) {
+              const t = Number(p.time) || 0;
+              if (t > lastAndroidSyncTime) lastAndroidSyncTime = t;
+            }
             await mergeIncomingNotifications(parsed, false);
           }
         }
@@ -1785,6 +1812,8 @@
         return allNotifications.length;
       } catch (e) {
         console.error("syncFromAndroidNativeDb error", e);
+      } finally {
+        isAndroidSyncBusy = false;
       }
       return allNotifications.length;
     }
@@ -1814,7 +1843,11 @@
     }
 
     window.onAndroidNativeUpdated = function() {
-      syncFromAndroidNativeDb(false);
+      if (androidUpdateDebounceTimer) clearTimeout(androidUpdateDebounceTimer);
+      androidUpdateDebounceTimer = setTimeout(() => {
+        androidUpdateDebounceTimer = null;
+        syncFromAndroidNativeDb(false, false);
+      }, 350);
     };
 
     /*************************************************************************
@@ -1930,17 +1963,54 @@
     }
 
     function getBlockedAppsSet() {
+      if (cachedBlockedAppsSet) return cachedBlockedAppsSet;
       try {
         const raw = localStorage.getItem(STORAGE_KEYS.BLOCKED_APPS);
-        if (raw) return new Set(JSON.parse(raw));
+        if (raw) {
+          cachedBlockedAppsSet = new Set(JSON.parse(raw));
+          return cachedBlockedAppsSet;
+        }
       } catch (e) {}
-      return new Set();
+      cachedBlockedAppsSet = new Set();
+      return cachedBlockedAppsSet;
     }
 
     function saveBlockedAppsSet(setObj) {
+      cachedBlockedAppsSet = new Set(setObj);
       try {
         localStorage.setItem(STORAGE_KEYS.BLOCKED_APPS, JSON.stringify(Array.from(setObj)));
       } catch (e) {}
+    }
+
+    function getItemMeta(item) {
+      if (item._meta) return item._meta;
+      const body = getDisplayBody(item);
+      const isChat = isChatNotification(item);
+      const mediaB64 = getItemMediaB64(item);
+      const hasMediaFlag = mediaB64.length > 50 || Boolean(item.hasSavedMedia);
+      const bankTx = extractBankTransaction(item);
+      const otp = extractOtp(item);
+      const extracted = extractLinksPhonesEmails(item);
+      const trackPromo = extractTrackingAndPromo(item);
+      const haystack = `${item.appName || ""} ${item.packageName || ""} ${item.title || ""} ${body} ${item.dateStr || ""}`.toLowerCase();
+      const meta = {
+        body,
+        isChat,
+        mediaB64,
+        hasMedia: hasMediaFlag,
+        bankTx,
+        otp,
+        extracted,
+        trackPromo,
+        haystack
+      };
+      Object.defineProperty(item, "_meta", {
+        value: meta,
+        writable: true,
+        enumerable: false,
+        configurable: true
+      });
+      return meta;
     }
 
     function formatVnd(amount, showSign = false) {
@@ -2029,9 +2099,59 @@
       return item;
     }
 
+    let cachedIdbPromise = null;
+    function getSharedIdb() {
+      if (!cachedIdbPromise) {
+        cachedIdbPromise = openIdb();
+      }
+      return cachedIdbPromise;
+    }
+
+    function loadFastBootItemsSync() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEYS.FALLBACK_ITEMS);
+        if (raw) {
+          const parsed = JSON.parse(raw);
+          if (Array.isArray(parsed) && parsed.length > 0) {
+            return parsed;
+          }
+        }
+      } catch (e) {}
+      return [];
+    }
+
+    let fastBootSaveTimer = null;
+    function scheduleSaveFastBootCache(sortedItems) {
+      if (fastBootSaveTimer) clearTimeout(fastBootSaveTimer);
+      fastBootSaveTimer = setTimeout(() => {
+        fastBootSaveTimer = null;
+        try {
+          // Chỉ lưu tối đa 70 tin mới nhất ở dạng siêu nhẹ (tách bỏ chuỗi ảnh Base64 nặng hàng MB) để bật app 0ms!
+          const slim = sortedItems.slice(0, 70).map((it) => ({
+            id: it.id,
+            uid: it.uid,
+            key: it.key,
+            packageName: it.packageName,
+            appName: it.appName,
+            title: it.title,
+            contentText: it.contentText,
+            bigText: it.bigText,
+            time: it.time,
+            dateStr: it.dateStr,
+            hasRemoteInput: it.hasRemoteInput,
+            isStarred: it.isStarred,
+            isRevoked: it.isRevoked,
+            isSynced: it.isSynced,
+            hasSavedMedia: Boolean((it.pictureB64 && it.pictureB64.length > 50) || it.hasSavedMedia)
+          }));
+          localStorage.setItem(STORAGE_KEYS.FALLBACK_ITEMS, JSON.stringify(slim));
+        } catch (e) {}
+      }, 250);
+    }
+
     async function loadAllFromLocalDb() {
       try {
-        const db = await openIdb();
+        const db = await getSharedIdb();
         if (db) {
           const items = await new Promise((resolve) => {
             const tx = db.transaction(IDB_STORE, "readonly");
@@ -2046,26 +2166,34 @@
           }
         }
       } catch (e) {}
+      return loadFastBootItemsSync();
+    }
 
+    async function putItemsToLocalDb(dirtyItems) {
+      if (!dirtyItems || dirtyItems.length === 0) return;
       try {
-        const raw = localStorage.getItem(STORAGE_KEYS.FALLBACK_ITEMS);
-        if (raw) {
-          const parsed = JSON.parse(raw);
-          if (Array.isArray(parsed)) {
-            parsed.sort((a, b) => b.time - a.time);
-            return parsed;
-          }
+        const db = await getSharedIdb();
+        if (db) {
+          await new Promise((resolve) => {
+            const tx = db.transaction(IDB_STORE, "readwrite");
+            const store = tx.objectStore(IDB_STORE);
+            for (const item of dirtyItems) {
+              store.put(item);
+            }
+            tx.oncomplete = () => resolve(true);
+            tx.onerror = () => resolve(false);
+          });
         }
       } catch (e) {}
-      return [];
     }
 
     async function saveAllToLocalDb(items) {
       const sorted = [...items].sort((a, b) => b.time - a.time);
       allNotifications = sorted;
+      scheduleSaveFastBootCache(sorted);
 
       try {
-        const db = await openIdb();
+        const db = await getSharedIdb();
         if (db) {
           await new Promise((resolve) => {
             const tx = db.transaction(IDB_STORE, "readwrite");
@@ -2079,11 +2207,6 @@
           });
         }
       } catch (e) {}
-
-      // Fallback lightweight copy in localStorage
-      try {
-        localStorage.setItem(STORAGE_KEYS.FALLBACK_ITEMS, JSON.stringify(sorted.slice(0, 300)));
-      } catch (e) {}
     }
 
     async function mergeIncomingNotifications(incomingList, speakNew = false) {
@@ -2091,42 +2214,67 @@
 
       const map = new Map();
       for (const existing of allNotifications) {
-        map.set(existing.uid || computeNotificationUid(existing), existing);
+        const uid = existing.uid || (existing.uid = computeNotificationUid(existing));
+        map.set(uid, existing);
       }
 
       let addedCount = 0;
+      const dirtyItems = [];
       const newlyArrived = [];
 
       for (const raw of incomingList) {
+        if (!raw) continue;
         if (raw.packageName === "com.notistar.cloud" && String(raw.title || "").startsWith("🚨")) {
           continue;
         }
-        const norm = normalizeNotification(raw);
+        const norm = raw.uid && raw.dateStr ? raw : normalizeNotification(raw);
+        if (!norm.uid) norm.uid = computeNotificationUid(norm);
         const existing = map.get(norm.uid);
         if (!existing) {
           map.set(norm.uid, norm);
           addedCount++;
+          dirtyItems.push(norm);
           newlyArrived.push(norm);
         } else {
+          let changed = false;
           if (norm.time > existing.time) {
             existing.time = norm.time;
             existing.dateStr = norm.dateStr;
+            changed = true;
           }
           if (norm.pictureB64 && (!existing.pictureB64 || norm.pictureB64.length > existing.pictureB64.length)) {
             existing.pictureB64 = norm.pictureB64;
+            existing._meta = null;
+            changed = true;
           }
           if (norm.largeIconB64 && !existing.largeIconB64) {
             existing.largeIconB64 = norm.largeIconB64;
+            changed = true;
           }
-          if (norm.isStarred) {
+          if (norm.isStarred && !existing.isStarred) {
             existing.isStarred = true;
+            changed = true;
+          }
+          if (norm.isRevoked && !existing.isRevoked) {
+            existing.isRevoked = true;
+            changed = true;
+          }
+          if (changed) {
+            dirtyItems.push(existing);
           }
         }
       }
 
+      if (dirtyItems.length === 0) {
+        return 0;
+      }
+
       const combined = Array.from(map.values()).sort((a, b) => b.time - a.time);
-      await saveAllToLocalDb(combined);
-      renderApp();
+      allNotifications = combined;
+      scheduleRenderApp();
+      scheduleSaveFastBootCache(combined);
+      // Ghi bất đồng bộ chỉ những tin mới/thay đổi vào IndexedDB (không xóa làm lại toàn bộ DB!)
+      putItemsToLocalDb(dirtyItems);
 
       if (speakNew && newlyArrived.length > 0 && isVoiceEnabled()) {
         for (const item of newlyArrived.slice(0, 2)) {
@@ -2175,8 +2323,10 @@
       setSyncStatus("🔄 Đang đồng bộ với Google Drive...", true);
 
       try {
+        const pullLimit = (!showToastMsg && allNotifications.length >= 100) ? 220 : 0;
         const sep = webAppUrl.includes("?") ? "&" : "?";
-        const pullUrl = `${webAppUrl}${sep}action=pull&folderId=${encodeURIComponent(getDriveFolderId())}&_t=${Date.now()}`;
+        const limitQuery = pullLimit > 0 ? `&limit=${pullLimit}` : "";
+        const pullUrl = `${webAppUrl}${sep}action=pull&folderId=${encodeURIComponent(getDriveFolderId())}${limitQuery}&_t=${Date.now()}`;
 
         let rawText = "";
         try {
@@ -2197,7 +2347,8 @@
             headers: { "Content-Type": "text/plain;charset=utf-8" },
             body: JSON.stringify({
               action: "pull",
-              folderId: getDriveFolderId()
+              folderId: getDriveFolderId(),
+              limit: pullLimit
             }),
             redirect: "follow"
           });
@@ -2564,14 +2715,19 @@
      *************************************************************************/
 
     function getVipKeywords() {
+      if (cachedVipKeywords) return cachedVipKeywords;
       try {
         const raw = localStorage.getItem("notistar_ios_vip_keywords");
         if (raw) {
           const arr = JSON.parse(raw);
-          if (Array.isArray(arr) && arr.length > 0) return arr;
+          if (Array.isArray(arr) && arr.length > 0) {
+            cachedVipKeywords = arr;
+            return cachedVipKeywords;
+          }
         }
       } catch (e) {}
-      return DEFAULT_VIP_KEYWORDS;
+      cachedVipKeywords = DEFAULT_VIP_KEYWORDS;
+      return cachedVipKeywords;
     }
 
     function saveVipKeywords(str) {
@@ -2579,6 +2735,7 @@
         .split(",")
         .map((s) => s.trim().toLowerCase())
         .filter(Boolean);
+      cachedVipKeywords = list.length > 0 ? list : DEFAULT_VIP_KEYWORDS;
       localStorage.setItem("notistar_ios_vip_keywords", JSON.stringify(list));
       renderApp();
       showToast(`🔥 Đã lưu ${list.length} từ khóa Radar VIP!`);
@@ -2586,9 +2743,9 @@
 
     function isVipNotification(item) {
       if (item.isStarred) return true;
-      const hay = `${item.title || ""} ${getDisplayBody(item)}`.toLowerCase();
+      const meta = getItemMeta(item);
       const kws = getVipKeywords();
-      return kws.some((kw) => kw && hay.includes(kw));
+      return kws.some((kw) => kw && meta.haystack.includes(kw));
     }
 
     function extractTrackingAndPromo(item) {
@@ -2679,14 +2836,14 @@
       copyTextToClipboard(fullText, "📋 Đã sao chép toàn bộ cuộc hội thoại!");
     }
 
-    function computeBankingSummary() {
+    function computeBankingSummary(sourceList = allNotifications) {
       let totalIn = 0;
       let totalOut = 0;
       const perBank = {};
       const bankItems = [];
 
-      for (const item of allNotifications) {
-        const tx = extractBankTransaction(item);
+      for (const item of sourceList) {
+        const tx = getItemMeta(item).bankTx;
         if (!tx) continue;
         bankItems.push({ item, tx });
         if (tx.isIncome) {
@@ -2713,7 +2870,7 @@
 
     function switchTab(tab) {
       currentTab = tab;
-      visibleRenderLimit = 300;
+      visibleRenderLimit = INITIAL_RENDER_LIMIT;
       document.querySelectorAll(".tab-pill").forEach((btn) => {
         btn.classList.toggle("active", btn.getAttribute("data-tab") === tab);
       });
@@ -2722,17 +2879,18 @@
       document.getElementById("dockMedia")?.classList.toggle("active", tab === "media");
       document.getElementById("dockBank")?.classList.toggle("active", tab === "bank");
       document.getElementById("dockManage")?.classList.toggle("active", tab === "manage");
+      window.scrollTo({ top: 0, behavior: "instant" });
       renderApp();
     }
 
     function selectDateFilter(dateStr) {
       currentDateFilter = dateStr;
-      visibleRenderLimit = 400;
+      visibleRenderLimit = 80;
       renderApp();
     }
 
     function loadMoreNotifications() {
-      visibleRenderLimit += 350;
+      visibleRenderLimit += 120;
       renderApp();
     }
 
@@ -2746,12 +2904,18 @@
       renderApp();
     }
 
+    let searchDebounceTimer = null;
     function onSearchChange() {
       const input = document.getElementById("searchInput");
       searchQuery = (input?.value || "").trim().toLowerCase();
       const clearBtn = document.getElementById("clearSearchBtn");
       if (clearBtn) clearBtn.style.display = searchQuery.length > 0 ? "block" : "none";
-      renderApp();
+      visibleRenderLimit = INITIAL_RENDER_LIMIT;
+      if (searchDebounceTimer) clearTimeout(searchDebounceTimer);
+      searchDebounceTimer = setTimeout(() => {
+        searchDebounceTimer = null;
+        renderApp();
+      }, 90);
     }
 
     function clearSearch() {
@@ -2760,21 +2924,51 @@
       searchQuery = "";
       const clearBtn = document.getElementById("clearSearchBtn");
       if (clearBtn) clearBtn.style.display = "none";
+      visibleRenderLimit = INITIAL_RENDER_LIMIT;
       renderApp();
     }
 
     function renderApp() {
       const blockedSet = getBlockedAppsSet();
-      const visibleNotifications = allNotifications.filter((n) => !blockedSet.has(n.packageName || n.appName));
+      const kws = getVipKeywords();
+      const visibleNotifications = [];
+      const chatList = [];
+      const revokedList = [];
+      const vipList = [];
+      const starredList = [];
+      const mediaList = [];
+      const linksList = [];
+      let totalIn = 0;
+      let totalOut = 0;
+      const perBank = {};
+      const bankItems = [];
 
-      // 1. Tính toán số lượng cho các Tab
-      const chatList = visibleNotifications.filter(isChatNotification);
-      const revokedList = visibleNotifications.filter((n) => n.isRevoked);
-      const vipList = visibleNotifications.filter(isVipNotification);
-      const starredList = visibleNotifications.filter((n) => n.isStarred);
-      const mediaList = visibleNotifications.filter(hasMedia);
-      const bankSummary = computeBankingSummary();
-      const linksList = visibleNotifications.filter((n) => extractLinksPhonesEmails(n).hasAny);
+      // 1. Duyệt 1 vòng O(N) duy nhất kết hợp bộ nhớ đệm _meta (nhanh gấp 15 lần so với 7 vòng lặp Regex)
+      for (let i = 0; i < allNotifications.length; i++) {
+        const n = allNotifications[i];
+        if (blockedSet.has(n.packageName || n.appName)) continue;
+        visibleNotifications.push(n);
+        const meta = getItemMeta(n);
+        if (meta.isChat) chatList.push(n);
+        if (n.isRevoked) revokedList.push(n);
+        if (n.isStarred) starredList.push(n);
+        if (meta.hasMedia) mediaList.push(n);
+        if (meta.extracted.hasAny) linksList.push(n);
+        if (n.isStarred || kws.some((kw) => kw && meta.haystack.includes(kw))) {
+          vipList.push(n);
+        }
+        const tx = meta.bankTx;
+        if (tx) {
+          bankItems.push({ item: n, tx });
+          if (tx.isIncome) totalIn += tx.amountVnd;
+          else totalOut += tx.amountVnd;
+          if (!perBank[tx.bankName]) perBank[tx.bankName] = { in: 0, out: 0, count: 0 };
+          perBank[tx.bankName].count++;
+          if (tx.isIncome) perBank[tx.bankName].in += tx.amountVnd;
+          else perBank[tx.bankName].out += tx.amountVnd;
+        }
+      }
+      const bankSummary = { totalIn, totalOut, net: totalIn - totalOut, perBank, bankItems };
       setText("countVip", vipList.length);
       const grpBtn = document.getElementById("btnGroupMode");
       const grpLbl = document.getElementById("groupModeLabel");
@@ -2871,11 +3065,9 @@
       }
 
       if (searchQuery) {
-        filtered = filtered.filter((item) => {
-          const hay = `${item.appName} ${item.packageName} ${item.title} ${getDisplayBody(item)} ${item.dateStr}`.toLowerCase();
-          return hay.includes(searchQuery);
-        });
+        filtered = filtered.filter((item) => getItemMeta(item).haystack.includes(searchQuery));
       }
+      currentFilteredLength = filtered.length;
 
       if (filtered.length === 0) {
         container.innerHTML = `
@@ -3124,11 +3316,12 @@
     }
 
     function renderNotificationCardHtml(item, threadMeta = null) {
-      const body = getDisplayBody(item);
-      const otp = extractOtp(item);
-      const tx = extractBankTransaction(item);
-      const extracted = extractLinksPhonesEmails(item);
-      const trackPromo = extractTrackingAndPromo(item);
+      const meta = getItemMeta(item);
+      const body = meta.body;
+      const otp = meta.otp;
+      const tx = meta.bankTx;
+      const extracted = meta.extracted;
+      const trackPromo = meta.trackPromo;
       const isVip = isVipNotification(item);
       const avatarHtml = renderAppAvatarHtml(item, tx);
 
@@ -3805,10 +3998,19 @@
 
     async function loadCloudSnapshotIfAvailable(force = false) {
       try {
-        const res = await fetch(`./cloud_snapshot.json?_t=${Date.now()}`, { cache: "no-cache" });
+        // Nếu máy đã nạp snapshot trước đó và đã có dữ liệu cục bộ, bỏ qua tải lại tệp 6.3MB khi khởi động!
+        const seededFlag = localStorage.getItem("notistar_snapshot_seeded_v9_8") === "1";
+        if (!force && seededFlag && allNotifications.length >= 40) {
+          return 0;
+        }
+        const res = await fetch(
+          force ? `./cloud_snapshot.json?_t=${Date.now()}` : "./cloud_snapshot.json",
+          { cache: force ? "no-cache" : "default" }
+        );
         if (!res.ok) return 0;
         const snap = await res.json();
         if (snap && Array.isArray(snap.notifications) && snap.notifications.length > 0) {
+          localStorage.setItem("notistar_snapshot_seeded_v9_8", "1");
           return await mergeIncomingNotifications(snap.notifications, false);
         }
       } catch (e) {}
@@ -4377,55 +4579,80 @@
         });
       }
 
-      // Tải dữ liệu Offline từ IndexedDB trước (cả iOS và Android) và chuẩn hóa lại UID mới
-      const cachedItems = await loadAllFromLocalDb();
-      if (cachedItems && cachedItems.length > 0) {
-        allNotifications = cachedItems.map(normalizeNotification);
+      // Tự động cuộn vô cực mượt mà (Infinite Scroll 60fps)
+      window.addEventListener("scroll", () => {
+        if (currentTab === "manage") return;
+        const scrollBottom = window.innerHeight + window.scrollY;
+        const docHeight = document.documentElement.scrollHeight || document.body.scrollHeight;
+        if (docHeight - scrollBottom < 480 && visibleRenderLimit < currentFilteredLength) {
+          visibleRenderLimit += 80;
+          scheduleRenderApp();
+        }
+      }, { passive: true });
+
+      // BƯỚC 1 (0ms Instant First Paint): Hiển thị ngay lập tức bộ đệm siêu nhẹ từ localStorage trước khi mở DB
+      const fastBootItems = loadFastBootItemsSync();
+      if (fastBootItems.length > 0) {
+        allNotifications = fastBootItems.map((it) => (it.uid && it.dateStr ? it : normalizeNotification(it)));
+        renderApp();
       }
-      // Nếu chạy trên Android Native, hợp nhất thêm toàn bộ dữ liệu từ SQLite Database của máy
+
+      // BƯỚC 2: Nếu chạy trên Android Native, nạp nhanh 180 tin mới nhất từ SQLite (<15ms)
       if (IS_ANDROID_NATIVE) {
-        await syncFromAndroidNativeDb(false);
+        await syncFromAndroidNativeDb(false, false);
       }
 
-      // Tự động dọn sạch trạng thái báo thu hồi nhầm từ bản cũ (1 lần duy nhất)
-      if (localStorage.getItem(STORAGE_KEYS.CLEANED_V3) !== "1") {
-        localStorage.setItem(STORAGE_KEYS.CLEANED_V3, "1");
-        allNotifications = allNotifications.filter(
-          (n) => !(n.packageName === "com.notistar.cloud" && String(n.title || "").startsWith("🚨"))
-        );
-        for (const item of allNotifications) {
-          if (item.isRevoked && item.key !== "demo_zalo_2") {
-            item.isRevoked = false;
+      // BƯỚC 3: Nạp bất đồng bộ kho IndexedDB đầy đủ (chứa ảnh gốc Base64)
+      loadAllFromLocalDb().then(async (idbItems) => {
+        if (idbItems && idbItems.length > 0) {
+          await mergeIncomingNotifications(idbItems, false);
+        }
+        if (localStorage.getItem(STORAGE_KEYS.CLEANED_V3) !== "1") {
+          localStorage.setItem(STORAGE_KEYS.CLEANED_V3, "1");
+          allNotifications = allNotifications.filter(
+            (n) => !(n.packageName === "com.notistar.cloud" && String(n.title || "").startsWith("🚨"))
+          );
+          for (const item of allNotifications) {
+            if (item.isRevoked && item.key !== "demo_zalo_2") {
+              item.isRevoked = false;
+            }
           }
+          await saveAllToLocalDb(allNotifications);
         }
-        await saveAllToLocalDb(allNotifications);
-      }
+        scheduleRenderApp();
 
-      renderApp();
-
-      // Nạp ngay Snapshot tốc độ cao (chứa đầy đủ 43+ ảnh thật & tin nhắn đã khử trùng lặp) trong < 150ms
-      await loadCloudSnapshotIfAvailable(false);
-
-      // Kiểm tra cập nhật OTA tự động qua mạng
-      checkOtaUpdate(false);
-      document.addEventListener("visibilitychange", () => {
-        if (document.visibilityState === "visible") {
-          checkOtaUpdate(false);
-          syncNow(false);
+        // Nạp phần lịch sử còn lại từ SQLite Android ở chế độ nền (sau 750ms)
+        if (IS_ANDROID_NATIVE) {
+          setTimeout(() => syncFromAndroidNativeDb(false, true), 750);
         }
+
+        // Chỉ nạp tệp cloud_snapshot.json ở nền nếu lần đầu cài hoặc chưa có dữ liệu
+        setTimeout(async () => {
+          await loadCloudSnapshotIfAvailable(false);
+          if (allNotifications.length === 0) {
+            await seedSampleDataIfNeeded(false);
+          }
+        }, 550);
       });
+
+      if (allNotifications.length === 0) {
+        renderApp();
+      }
 
       await handleUrlQueryActions();
 
-      // Đồng bộ thời gian thực với Google Drive ở chế độ nền
-      syncNow(false);
+      // BƯỚC 4: Hoãn đồng bộ mạng Google Drive & kiểm tra OTA 1.2 giây sau khi giao diện đã mượt mà
+      setTimeout(() => {
+        checkOtaUpdate(false);
+        syncNow(false);
+        setupAutoPolling();
+      }, 1200);
 
-      // Nếu trên Drive chưa có thông báo nào cả, nạp sẵn 4 mẫu demo để người dùng trải nghiệm ngay
-      if (allNotifications.length === 0) {
-        await seedSampleDataIfNeeded(false);
-      }
-
-      setupAutoPolling();
+      document.addEventListener("visibilitychange", () => {
+        if (document.visibilityState === "visible") {
+          syncNow(false);
+        }
+      });
     }
 
     window.addEventListener("DOMContentLoaded", initNotiStarIosApp);

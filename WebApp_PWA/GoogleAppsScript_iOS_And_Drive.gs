@@ -41,7 +41,7 @@ function doPost(e) {
     var folderId = String(payload.folderId || DEFAULT_DRIVE_FOLDER_ID).trim() || DEFAULT_DRIVE_FOLDER_ID;
 
     if (action === 'pull' || action === 'get') {
-      return handlePullRequest(folderId, payload.date || '');
+      return handlePullRequest(folderId, payload.date || '', payload.limit || 0);
     }
     if (action === 'list_days') {
       return handleListDailyFiles(folderId);
@@ -135,7 +135,7 @@ function doGet(e) {
     return jsonResponse({ status: 'ok', captured: true, item: singleItem });
   }
 
-  return handlePullRequest(folderId, params.date || '');
+  return handlePullRequest(folderId, params.date || '', params.limit || 0);
 }
 
 /**
@@ -258,10 +258,11 @@ function mergeIntoDailyDriveBackups(device, newItems, folderId) {
  * - Nếu không truyền `targetDate`, đọc tất cả các tệp `notistar_backup_*.json` (kèm tệp cũ nếu có)
  *   và trả về danh sách thông báo không giới hạn 2.000 tin như trước!
  */
-function handlePullRequest(folderId, targetDate) {
+function handlePullRequest(folderId, targetDate, limitParam) {
   try {
     var targetFolderId = folderId || DEFAULT_DRIVE_FOLDER_ID;
     var folder = getTargetFolder(targetFolderId);
+    var requestedLimit = Number(limitParam) > 0 ? Math.min(Number(limitParam), MAX_ROLLING_PULL_ITEMS) : MAX_ROLLING_PULL_ITEMS;
 
     // Đảm bảo nếu chỉ mới có file cũ thì tự động tách ra các file theo ngày luôn
     mergeIntoDailyDriveBackups('AutoMigrate', [], targetFolderId);
@@ -293,7 +294,7 @@ function handlePullRequest(folderId, targetDate) {
             combined = combined.concat(p.notifications);
           }
         } catch (e) {}
-        if (combined.length >= MAX_ROLLING_PULL_ITEMS) break;
+        if (combined.length >= requestedLimit) break;
       }
 
       // Nếu chưa có tệp theo ngày nào, fallback đọc tệp `notistar_cloud_backup.json`
@@ -311,6 +312,9 @@ function handlePullRequest(folderId, targetDate) {
     }
 
     var deduped = deduplicateNotificationsList(combined);
+    if (!targetDate && requestedLimit > 0 && deduped.length > requestedLimit) {
+      deduped = deduped.slice(0, requestedLimit);
+    }
     return jsonResponse({
       status: 'ok',
       app: 'NotiStarCloud',

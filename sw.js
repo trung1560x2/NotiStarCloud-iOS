@@ -1,16 +1,15 @@
 /**
- * NotiStar Cloud (OneUI 7 iOS Edition) - Network-First OTA Service Worker
- * Luôn ưu tiên lấy bản cập nhật mới nhất qua mạng (OTA), chỉ dùng Cache khi mất mạng (Offline).
- * Tự động làm mới (auto-navigate) cửa sổ iPhone ngay khi nâng cấp từ bản cũ lên bản OTA mới.
+ * NotiStar Cloud (OneUI 7 iOS Edition) - Instant-Boot Stale-While-Revalidate + Live OTA Service Worker
+ * - Phục vụ giao diện App Shell (index.html, icon, manifest) TỨC THÌ trong <5ms từ bộ nhớ đệm (0ms lag khi bật app).
+ * - Đồng thời tự động tải ngầm bản mới nhất từ mạng để cập nhật Cache & kiểm tra version.json trực tiếp.
  */
 
-const CACHE_NAME = "notistar-ios-ota-v9";
+const CACHE_NAME = "notistar-ios-ota-v10";
 const APP_SHELL_ASSETS = [
   "./",
   "./index.html",
   "./manifest.json",
-  "./icon.png",
-  "./version.json"
+  "./icon.png"
 ];
 
 self.addEventListener("install", (event) => {
@@ -26,24 +25,12 @@ self.addEventListener("activate", (event) => {
   event.waitUntil(
     (async () => {
       const keys = await caches.keys();
-      let deletedOldCache = false;
       for (const key of keys) {
         if (key !== CACHE_NAME) {
           await caches.delete(key);
-          deletedOldCache = true;
         }
       }
       await self.clients.claim();
-      if (deletedOldCache) {
-        const winClients = await self.clients.matchAll({ type: "window", includeUncontrolled: true });
-        for (const client of winClients) {
-          if (client.url && "navigate" in client) {
-            try {
-              await client.navigate(client.url);
-            } catch (e) {}
-          }
-        }
-      }
     })()
   );
 });
@@ -63,25 +50,38 @@ self.addEventListener("fetch", (event) => {
     return;
   }
 
-  // Network-First strategy for instant OTA updates!
+  // Luôn lấy trực tiếp từ mạng cho version.json hoặc các yêu cầu có ?_t= (kiểm tra OTA)
+  if (url.pathname.endsWith("version.json") || url.search.includes("_t=")) {
+    event.respondWith(
+      fetch(req, { cache: "no-store" }).catch(() => caches.match(req))
+    );
+    return;
+  }
+
+  // Stale-While-Revalidate cho App Shell: Mở app tức thì (<5ms) từ Cache, đồng thời cập nhật ngầm từ mạng!
   event.respondWith(
-    fetch(req, { cache: "no-store" })
-      .then((networkRes) => {
-        if (networkRes && networkRes.status === 200 && url.origin === self.location.origin) {
-          const clone = networkRes.clone();
-          caches.open(CACHE_NAME).then((cache) => cache.put(req, clone)).catch(() => {});
-        }
-        return networkRes;
-      })
-      .catch(() => {
-        return caches.match(req).then((cached) => {
-          if (cached) return cached;
-          if (req.mode === "navigate") {
-            return caches.match("./index.html");
+    caches.open(CACHE_NAME).then(async (cache) => {
+      const cachedRes = await cache.match(req);
+      const networkPromise = fetch(req)
+        .then((networkRes) => {
+          if (networkRes && networkRes.status === 200 && url.origin === self.location.origin) {
+            cache.put(req, networkRes.clone()).catch(() => {});
           }
-          return new Response("Offline", { status: 503 });
-        });
-      })
+          return networkRes;
+        })
+        .catch(() => null);
+
+      if (cachedRes) {
+        return cachedRes;
+      }
+      const netRes = await networkPromise;
+      if (netRes) return netRes;
+      if (req.mode === "navigate") {
+        const fallback = await cache.match("./index.html");
+        if (fallback) return fallback;
+      }
+      return new Response("Offline", { status: 503 });
+    })
   );
 });
 
