@@ -1,9 +1,9 @@
 {
-  "versionCode": 15,
-  "versionName": "10.0.0-Chronos",
+  "versionCode": 16,
+  "versionName": "10.1.0-Chronos",
   "apkUrl": "https://trung1560x2.github.io/NotiStarCloud-iOS/NotiStarCloud_OneUI7_AutoDrive.apk",
   "webAppUrl": "https://trung1560x2.github.io/NotiStarCloud-iOS/",
-  "releaseNotes": "v10.0.0-Chronos: Giao diện Chronos Obsidian Glass mới, Thanh chọn nhanh ngày thông báo & Lịch Tháng Heatmap trực quan, Tải nhanh từng ngày từ Google Drive, và Công nghệ cuộn 120Hz Incremental DOM + Blob GPU Cache siêu mượt.",
+  "releaseNotes": "v10.1.0-Chronos: Sửa triệt để lỗi tràn chữ tiêu đề NotiStar đè lên cụm nút góc trên, ẩn thanh Bento trùng lặp và thu gọn Header ở tab Quản lý giúp giao diện thoáng rộng.",
   "resetFalseRevokedVersion": 4,
-  "updatedAt": "2026-11-02T11:22:00+07:00"
+  "updatedAt": "2026-11-02T14:15:00+07:00"
 }
