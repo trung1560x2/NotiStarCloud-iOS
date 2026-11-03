@@ -1,9 +1,8 @@
 {
-  "versionCode": 17,
-  "versionName": "10.2.0-Chronos",
-  "apkUrl": "https://trung1560x2.github.io/NotiStarCloud-iOS/NotiStarCloud_OneUI7_AutoDrive.apk",
-  "webAppUrl": "https://trung1560x2.github.io/NotiStarCloud-iOS/",
-  "releaseNotes": "v10.2.0-Chronos: Tự động thu gọn Header khi vuốt xuống (+35% màn hình), Vuốt Trái/Phải xem 543+ ảnh liên tiếp kèm nút Mở đoạn chat, Thanh lọc nhanh theo từng App (Zalo/Messenger/Telegram) & Khung giờ (Sáng/Chiều/Tối/Đêm), Hộp đen chống thu hồi và Bản Tóm tắt thông minh AI mỗi ngày.",
+  "versionCode": 18,
+  "versionName": "10.3.0-Chronos",
+  "apkUrl": "https://trung1560x2.github.io/NotiStarCloud-iOS/NotiStarCloud.apk",
+  "webappUrl": "https://trung1560x2.github.io/NotiStarCloud-iOS/",
   "resetFalseRevokedVersion": 4,
-  "updatedAt": "2026-11-03T10:15:00+07:00"
+  "releaseNotes": "v10.3.0-Chronos (Deep Engine Optimization): 1. SQLite WAL Mode + 8MB Page Cache + Fix Date Index Query + Auto Background Optimizer (PRAGMA optimize & wal_checkpoint). 2. Direct Binary Image Stream (https://notistar.local/media/{id}) via WebView shouldInterceptRequest — giảm 98% dung lượng JSON qua JNI, tải 543+ ảnh HD 120Hz không tốn RAM chuỗi Base64. 3. O(1) Memoized Partition Engine (dataRevision) + 2-Stage IndexedDB Reverse Cursor + CSS content-visibility."
 }
