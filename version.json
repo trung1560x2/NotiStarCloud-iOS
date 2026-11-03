@@ -1,11 +1,11 @@
 {
-  "versionCode": 19,
-  "androidVersionCode": 19,
-  "versionName": "10.3.1-Chronos",
+  "versionCode": 20,
+  "androidVersionCode": 20,
+  "versionName": "10.3.2-Chronos",
   "androidApkUrl": "https://trung1560x2.github.io/NotiStarCloud-iOS/NotiStarCloud_OneUI7_AutoDrive.apk",
   "apkUrl": "https://trung1560x2.github.io/NotiStarCloud-iOS/NotiStarCloud_OneUI7_AutoDrive.apk",
   "webappUrl": "https://trung1560x2.github.io/NotiStarCloud-iOS/",
   "resetFalseRevokedVersion": 4,
-  "changelog": "v10.3.1-Chronos (Deep Engine Optimization + OTA Fix):\n1. Đồng bộ chuẩn đường dẫn tải OTA (NotiStarCloud_OneUI7_AutoDrive.apk & NotiStarCloud.apk) giúp tự nâng cấp phiên bản chính xác 100%.\n2. SQLite WAL Mode + 8MB RAM Page Cache + Sửa truy vấn Index ngày (date = ?) + Tự động tối ưu ngầm.\n3. Luồng ảnh nhị phân trực tiếp (https://notistar.local/media/{id}) qua WebView shouldInterceptRequest — giảm 98% JSON qua JNI, tải 543+ ảnh HD 120Hz không tốn RAM Base64.\n4. O(1) Memoized Partition Engine (dataRevision) + 2-Stage IndexedDB Reverse Cursor.",
-  "releaseNotes": "v10.3.1-Chronos (Deep Engine Optimization + OTA Fix):\n1. Đồng bộ chuẩn đường dẫn tải OTA (NotiStarCloud_OneUI7_AutoDrive.apk & NotiStarCloud.apk) giúp tự nâng cấp phiên bản chính xác 100%.\n2. SQLite WAL Mode + 8MB RAM Page Cache + Sửa truy vấn Index ngày (date = ?) + Tự động tối ưu ngầm.\n3. Luồng ảnh nhị phân trực tiếp (https://notistar.local/media/{id}) qua WebView shouldInterceptRequest — giảm 98% JSON qua JNI, tải 543+ ảnh HD 120Hz không tốn RAM Base64.\n4. O(1) Memoized Partition Engine (dataRevision) + 2-Stage IndexedDB Reverse Cursor."
+  "changelog": "v10.3.2-Chronos (120Hz Zero-Jitter Scroll Fix):\n1. Khóa cố định chiều cao thanh Header (loại bỏ cơ chế ẩn/hiện làm hụt 130px gây giật khi kéo xuống rồi kéo lên).\n2. Tắt content-visibility: auto lệch chiều cao và khóa khung ảnh 186px cố định, chống nhảy vị trí trang 100% khi cuộn ngược.\n3. Tối ưu sự kiện cuộn bằng requestAnimationFrame (RAF-throttled) kết hợp GPU Layer (translateZ) mượt 120Hz.\n4. Bao gồm toàn bộ nhân SQLite WAL + Luồng ảnh nhị phân trực tiếp + O(1) Partition Cache.",
+  "releaseNotes": "v10.3.2-Chronos (120Hz Zero-Jitter Scroll Fix):\n1. Khóa cố định chiều cao thanh Header (loại bỏ cơ chế ẩn/hiện làm hụt 130px gây giật khi kéo xuống rồi kéo lên).\n2. Tắt content-visibility: auto lệch chiều cao và khóa khung ảnh 186px cố định, chống nhảy vị trí trang 100% khi cuộn ngược.\n3. Tối ưu sự kiện cuộn bằng requestAnimationFrame (RAF-throttled) kết hợp GPU Layer (translateZ) mượt 120Hz.\n4. Bao gồm toàn bộ nhân SQLite WAL + Luồng ảnh nhị phân trực tiếp + O(1) Partition Cache."
 }
