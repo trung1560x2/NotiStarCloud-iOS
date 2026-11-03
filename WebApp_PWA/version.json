@@ -1,9 +1,9 @@
 {
-  "versionCode": 16,
-  "versionName": "10.1.0-Chronos",
+  "versionCode": 17,
+  "versionName": "10.2.0-Chronos",
   "apkUrl": "https://trung1560x2.github.io/NotiStarCloud-iOS/NotiStarCloud_OneUI7_AutoDrive.apk",
   "webAppUrl": "https://trung1560x2.github.io/NotiStarCloud-iOS/",
-  "releaseNotes": "v10.1.0-Chronos: Sửa triệt để lỗi tràn chữ tiêu đề NotiStar đè lên cụm nút góc trên, ẩn thanh Bento trùng lặp và thu gọn Header ở tab Quản lý giúp giao diện thoáng rộng.",
+  "releaseNotes": "v10.2.0-Chronos: Tự động thu gọn Header khi vuốt xuống (+35% màn hình), Vuốt Trái/Phải xem 543+ ảnh liên tiếp kèm nút Mở đoạn chat, Thanh lọc nhanh theo từng App (Zalo/Messenger/Telegram) & Khung giờ (Sáng/Chiều/Tối/Đêm), Hộp đen chống thu hồi và Bản Tóm tắt thông minh AI mỗi ngày.",
   "resetFalseRevokedVersion": 4,
-  "updatedAt": "2026-11-02T14:15:00+07:00"
+  "updatedAt": "2026-11-03T10:15:00+07:00"
 }

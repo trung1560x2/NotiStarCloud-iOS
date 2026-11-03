@@ -109,14 +109,107 @@
       margin-bottom: 10px;
     }
 
+    .top-header {
+      transition: padding 0.18s ease, background 0.18s ease;
+    }
+
     .top-header.manage-mode .brand-row {
       margin-bottom: 0;
     }
 
     .top-header.manage-mode .search-row,
     .top-header.manage-mode #filterTabsBar,
-    .top-header.manage-mode #dateFilterBar {
+    .top-header.manage-mode #dateFilterBar,
+    .top-header.manage-mode #appQuickFilterBar {
       display: none !important;
+    }
+
+    /* Smart Auto-Collapsing Header when scrolling down (+35% reading area) */
+    .top-header.scroll-collapsed {
+      padding-top: 6px;
+      padding-bottom: 8px;
+    }
+    .top-header.scroll-collapsed .brand-row {
+      margin-bottom: 6px;
+    }
+    .top-header.scroll-collapsed .search-row,
+    .top-header.scroll-collapsed #dateFilterBar,
+    .top-header.scroll-collapsed #appQuickFilterBar {
+      display: none !important;
+    }
+
+    /* App Quick-Filter Bar (Zalo, Messenger, Telegram...) */
+    .app-quick-bar {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      overflow-x: auto;
+      scrollbar-width: none;
+      -ms-overflow-style: none;
+      padding: 6px 0 2px 0;
+    }
+    .app-quick-bar::-webkit-scrollbar { display: none; }
+
+    .app-filter-chip {
+      flex-shrink: 0;
+      padding: 4.5px 10px;
+      border-radius: var(--radius-pill);
+      background: rgba(255, 255, 255, 0.05);
+      border: 0.5px solid rgba(255, 255, 255, 0.085);
+      color: var(--text-secondary);
+      font-size: 11.5px;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      transition: transform 0.12s ease, background 0.12s ease;
+    }
+    .app-filter-chip:active { transform: scale(0.95); }
+    .app-filter-chip.active {
+      background: rgba(14, 165, 233, 0.24);
+      border-color: #38BDF8;
+      color: #FFFFFF;
+      box-shadow: 0 2px 10px rgba(14, 165, 233, 0.25);
+    }
+    .app-chip-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+
+    .briefing-trigger-btn {
+      flex-shrink: 0;
+      padding: 5.5px 11px;
+      border-radius: var(--radius-pill);
+      background: linear-gradient(135deg, rgba(245, 158, 11, 0.22), rgba(236, 72, 153, 0.22));
+      border: 0.5px solid rgba(251, 191, 36, 0.55);
+      color: #FDE68A;
+      font-size: 11.5px;
+      font-weight: 700;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      box-shadow: 0 2px 10px rgba(245, 158, 11, 0.16);
+    }
+    .briefing-trigger-btn:active { transform: scale(0.95); }
+
+    /* Anti-Revoke Blackbox Banner inside Revoked Cards */
+    .revoked-blackbox-bar {
+      margin-top: 7px;
+      padding: 6px 10px;
+      border-radius: 10px;
+      background: rgba(244, 63, 94, 0.16);
+      border: 0.5px solid rgba(244, 63, 94, 0.42);
+      color: #FECDD3;
+      font-size: 11.5px;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 6px;
     }
 
     .brand-left {
@@ -1719,16 +1812,25 @@
     </div>
   </div>
 
-  <!-- Fullscreen HD Photo Lightbox with Tall-Screenshot Reader & Super-Resolution Sharpening -->
+  <!-- Fullscreen HD Photo Lightbox with Gallery Swipe, Jump-to-Chat, Tall-Screenshot Reader & Super-Resolution Sharpening -->
   <div id="lightboxOverlay" class="lightbox-overlay" onclick="closeLightbox()">
     <div class="lightbox-top-bar" onclick="event.stopPropagation()">
-      <span id="lightboxResBadge" class="lightbox-res-badge">📐 Đang tải ảnh...</span>
-      <button class="lb-zoom-pill" id="btnEnhanceHd" style="border-color:rgba(48,209,88,0.55);color:#30D158;" onclick="enhanceCurrentLightboxPhotoHd()">
+      <div style="min-width:0;flex:1;">
+        <div id="lightboxResBadge" class="lightbox-res-badge" style="display:inline-block;max-width:100%;">📐 Đang tải ảnh...</div>
+        <div id="lightboxMetaSub" style="font-size:11.5px;color:#CBD5E1;margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;"></div>
+      </div>
+      <button class="lb-zoom-pill" id="btnEnhanceHd" style="border-color:rgba(48,209,88,0.55);color:#30D158;flex-shrink:0;" onclick="enhanceCurrentLightboxPhotoHd()">
         ✨ Làm nét HD 2x
       </button>
     </div>
     <div id="lightboxViewport" class="lightbox-viewport" onclick="event.stopPropagation()">
       <img id="lightboxImg" src="" alt="Preview" onclick="cycleLightboxZoom()" />
+    </div>
+    <!-- Thanh điều hướng Ảnh Trước / Mở Đoạn Chat / Ảnh Sau -->
+    <div class="lightbox-zoom-bar" style="margin-bottom:2px;" onclick="event.stopPropagation()">
+      <button class="lb-zoom-pill" id="btnLbPrev" onclick="stepLightboxPhoto(-1)">◀ Ảnh trước</button>
+      <button class="lb-zoom-pill" id="btnLbOpenChat" style="border-color:rgba(56,189,248,0.55);color:#7DD3FC;display:none;" onclick="openCurrentLightboxChat()">💬 Mở đoạn chat</button>
+      <button class="lb-zoom-pill" id="btnLbNext" onclick="stepLightboxPhoto(1)">Ảnh sau ▶</button>
     </div>
     <div class="lightbox-zoom-bar" onclick="event.stopPropagation()">
       <button class="lb-zoom-pill active" id="lbModeFit" onclick="setLightboxZoomMode('fit')">🖼️ Vừa khung</button>
@@ -1737,8 +1839,8 @@
       <button class="lb-zoom-pill" id="lbModeZoom3x" onclick="setLightboxZoomMode('zoom3x')">🔍 Zoom 3x</button>
     </div>
     <div style="display:flex;gap:8px;margin-top:8px;flex-wrap:wrap;justify-content:center;flex-shrink:0;" onclick="event.stopPropagation()">
-      <button class="btn btn-primary" style="flex:0 0 auto;width:auto;padding:9px 14px;" onclick="saveCurrentLightboxPhoto()">💾 Lưu ảnh về Máy (Album NotiStar)</button>
-      <button class="btn" style="flex:0 0 auto;width:auto;padding:9px 14px;" onclick="openDriveFolderExternal()">📂 Mở Google Drive</button>
+      <button class="btn btn-primary" style="flex:0 0 auto;width:auto;padding:9px 14px;" onclick="saveCurrentLightboxPhoto()">💾 Lưu ảnh về Máy</button>
+      <button class="btn" style="flex:0 0 auto;width:auto;padding:9px 14px;" onclick="openDriveFolderExternal()">📂 Drive</button>
       <button class="btn" style="flex:0 0 auto;width:auto;padding:9px 14px;" onclick="closeLightbox()">Đóng</button>
     </div>
   </div>
@@ -1829,8 +1931,10 @@
           Link &amp; SĐT <span class="tab-count" id="countLinks">0</span>
         </button>
       </div>
-      <!-- Chronos Quick Date Scrubber Bar (Chọn nhanh Ngày / Lịch Tháng) -->
+      <!-- Chronos Quick Date Scrubber Bar (Chọn nhanh Ngày / Lịch Tháng / Tóm tắt AI) -->
       <div class="chronos-date-bar" id="dateFilterBar"></div>
+      <!-- FilterBox 2026: 1-Tap App Quick-Filter Bar (Zalo, Messenger, Telegram...) -->
+      <div class="app-quick-bar" id="appQuickFilterBar"></div>
     </header>
 
     <div id="iosInstallBanner" class="install-banner" style="display:none;">
@@ -1938,7 +2042,13 @@
       </div>
 
       <!-- Các mốc chọn nhanh 1 chạm -->
-      <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px;" id="calendarQuickPresets"></div>
+      <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px;" id="calendarQuickPresets"></div>
+
+      <!-- Bộ lọc Khung Giờ Trong Ngày (Sáng / Chiều / Tối / Đêm) -->
+      <div style="margin-bottom:12px;">
+        <div class="form-label" style="margin-bottom:5px;">🕒 Lọc theo Khung Giờ trong ngày:</div>
+        <div style="display:flex;gap:6px;flex-wrap:wrap;" id="calendarTimeSlotPresets"></div>
+      </div>
 
       <!-- Lịch Tháng Heatmap trực quan -->
       <div class="cal-month-nav">
@@ -1970,6 +2080,14 @@
           </button>
         </div>
       </div>
+    </div>
+  </div>
+
+  <!-- Modal AI Daily Briefing (Tóm Tắt Nhanh Trong Ngày - AI Digest 2026) -->
+  <div id="dailyBriefingModal" class="modal-backdrop" onclick="closeModalOnBackdrop(event, 'dailyBriefingModal')">
+    <div class="modal-sheet">
+      <div class="sheet-handle"></div>
+      <div id="dailyBriefingContent"></div>
     </div>
   </div>
 
@@ -2170,8 +2288,8 @@
       OTA_VERSION: "notistar_ios_ota_version_code",
       CLEANED_V3: "notistar_ios_cleaned_false_revoked_v3"
     };
-    const CURRENT_OTA_VERSION_CODE = 16;
-    const CURRENT_OTA_VERSION_NAME = "10.1.0-Chronos";
+    const CURRENT_OTA_VERSION_CODE = 17;
+    const CURRENT_OTA_VERSION_NAME = "10.2.0-Chronos";
     const INITIAL_RENDER_LIMIT = 55;
 
     const IDB_NAME = "NotiStarCloud_iOS_DB";
@@ -2183,6 +2301,12 @@
     let currentTab = "all";
     let currentBankFilter = "ALL";
     let currentDateFilter = "ALL";
+    let currentAppFilter = "ALL";
+    let currentHourSlot = "ALL"; // ALL | MORNING | AFTERNOON | EVENING | NIGHT
+    let onlyRevokedMedia = false;
+    let currentLightboxUid = "";
+    let currentLightboxList = [];
+    let currentLightboxIndex = -1;
     let visibleRenderLimit = INITIAL_RENDER_LIMIT;
     let currentFilteredLength = 0;
     let searchQuery = "";
@@ -3479,7 +3603,7 @@
         const yestCnt = dayStats.get(yesterdayStr)?.count || 0;
         presetsEl.innerHTML = `
           <button class="date-scrubber-pill ${currentDateFilter === 'ALL' ? 'active' : ''}" onclick="selectDateFilter('ALL', true)">
-            🌐 Tất cả ngày <span class="date-scrubber-cnt">${allNotifications.length}</span>
+            🌐 Mọi ngày <span class="date-scrubber-cnt">${allNotifications.length}</span>
           </button>
           <button class="date-scrubber-pill ${currentDateFilter === todayStr ? 'active' : ''}" onclick="selectDateFilter('${todayStr}', true)">
             ☀️ Hôm nay <span class="date-scrubber-cnt">${todayCnt}</span>
@@ -3494,6 +3618,22 @@
             📅 7 ngày qua
           </button>
         `;
+      }
+
+      const slotsEl = document.getElementById("calendarTimeSlotPresets");
+      if (slotsEl) {
+        const slotDefs = [
+          { id: "ALL", label: "🕒 Cả ngày (00h–24h)" },
+          { id: "MORNING", label: "🌅 Sáng (06h–12h)" },
+          { id: "AFTERNOON", label: "☀️ Chiều (12h–18h)" },
+          { id: "EVENING", label: "🌆 Tối (18h–24h)" },
+          { id: "NIGHT", label: "🌙 Đêm (00h–06h)" }
+        ];
+        slotsEl.innerHTML = slotDefs.map((s) => `
+          <button class="date-scrubber-pill ${currentHourSlot === s.id ? 'active' : ''}" onclick="selectHourSlot('${s.id}')">
+            ${s.label}
+          </button>
+        `).join("");
       }
 
       const mmStr = String(calendarViewMonth + 1).padStart(2, "0");
@@ -3537,6 +3677,220 @@
         `);
       }
       gridEl.innerHTML = cells.join("");
+    }
+
+    function selectHourSlot(slotId, closeCal = false) {
+      currentHourSlot = slotId || "ALL";
+      visibleRenderLimit = INITIAL_RENDER_LIMIT;
+      if (closeCal) closeModal("calendarModal");
+      else renderCalendarModalContent();
+      renderApp();
+    }
+
+    function selectAppFilter(appKey) {
+      currentAppFilter = appKey || "ALL";
+      visibleRenderLimit = INITIAL_RENDER_LIMIT;
+      window.scrollTo({ top: 0, behavior: "instant" });
+      renderApp();
+    }
+
+    function toggleOnlyRevokedMedia() {
+      onlyRevokedMedia = !onlyRevokedMedia;
+      visibleRenderLimit = INITIAL_RENDER_LIMIT;
+      renderApp();
+    }
+
+    function matchHourSlot(ts, slotId) {
+      if (!slotId || slotId === "ALL") return true;
+      const hr = new Date(Number(ts) || Date.now()).getHours();
+      if (slotId === "MORNING") return hr >= 6 && hr < 12;
+      if (slotId === "AFTERNOON") return hr >= 12 && hr < 18;
+      if (slotId === "EVENING") return hr >= 18 && hr <= 23;
+      if (slotId === "NIGHT") return hr >= 0 && hr < 6;
+      return true;
+    }
+
+    function getAppFamilyKeyAndLabel(item) {
+      const hay = `${item.appName || ""} ${item.packageName || ""}`.toLowerCase();
+      if (hay.includes("zalo") && !hay.includes("zalopay")) {
+        return { key: "APP_ZALO", label: "Zalo", color: "#0068FF" };
+      }
+      if (hay.includes("messenger") || hay.includes("orca")) {
+        return { key: "APP_MESSENGER", label: "Messenger", color: "#0084FF" };
+      }
+      if (hay.includes("telegram")) {
+        return { key: "APP_TELEGRAM", label: "Telegram", color: "#2AABEE" };
+      }
+      if (hay.includes("facebook") || hay.includes("katana")) {
+        return { key: "APP_FACEBOOK", label: "Facebook", color: "#1877F2" };
+      }
+      if (hay.includes("phone") || hay.includes("call") || hay.includes("incallui") || hay.includes("điện thoại") || hay.includes("mms") || hay.includes("sms")) {
+        return { key: "APP_PHONE_SMS", label: "ĐT & SMS", color: "#34C759" };
+      }
+      if (getItemMeta(item).bankTx || hay.includes("bank") || hay.includes("momo") || hay.includes("zalopay") || hay.includes("vcb")) {
+        return { key: "APP_BANK", label: "Ngân hàng", color: "#10B981" };
+      }
+      const rawName = (item.appName || item.packageName || "Khác").trim();
+      return { key: `PKG_${item.packageName || rawName}`, label: rawName, color: "#6366F1" };
+    }
+
+    function openDailyBriefingModal(targetDateOverride = null) {
+      const box = document.getElementById("dailyBriefingContent");
+      if (!box) return;
+
+      const todayStr = getTodayDateStr();
+      const yesterdayStr = getYesterdayDateStr();
+      const activeDate = targetDateOverride !== null
+        ? targetDateOverride
+        : (/^\d{4}-\d{2}-\d{2}$/.test(currentDateFilter) ? currentDateFilter : todayStr);
+
+      const sourceItems = activeDate === "ALL"
+        ? allNotifications
+        : allNotifications.filter((n) => (n.dateStr || formatDateOnly(n.time)) === activeDate);
+
+      let chatCnt = 0;
+      let mediaCnt = 0;
+      let revokedCnt = 0;
+      let totalIn = 0;
+      let totalOut = 0;
+      const hourCounts = new Array(24).fill(0);
+      const senderCounts = new Map();
+      const revokedSamples = [];
+
+      for (const n of sourceItems) {
+        const meta = getItemMeta(n);
+        if (meta.isChat) chatCnt++;
+        if (meta.hasMedia) mediaCnt++;
+        if (n.isRevoked) {
+          revokedCnt++;
+          if (revokedSamples.length < 6) revokedSamples.push(n);
+        }
+        if (meta.bankTx) {
+          if (meta.bankTx.isIncome) totalIn += meta.bankTx.amountVnd;
+          else totalOut += meta.bankTx.amountVnd;
+        }
+        const hr = new Date(Number(n.time) || Date.now()).getHours();
+        if (hr >= 0 && hr < 24) hourCounts[hr]++;
+
+        const grpTitle = getConversationGroupTitle(n.title || n.appName || "");
+        if (grpTitle && grpTitle !== n.appName) {
+          const sKey = `${grpTitle}|${n.appName}`;
+          const prev = senderCounts.get(sKey) || { title: grpTitle, appName: n.appName, count: 0, sampleUid: n.uid };
+          prev.count++;
+          senderCounts.set(sKey, prev);
+        }
+      }
+
+      let peakHour = 0;
+      let peakHourCnt = 0;
+      for (let h = 0; h < 24; h++) {
+        if (hourCounts[h] > peakHourCnt) {
+          peakHourCnt = hourCounts[h];
+          peakHour = h;
+        }
+      }
+
+      const topSenders = Array.from(senderCounts.values()).sort((a, b) => b.count - a.count).slice(0, 5);
+      const dateTitleLabel = activeDate === "ALL"
+        ? "Toàn bộ kho lưu trữ"
+        : (activeDate === todayStr ? `Hôm nay (${activeDate})` : (activeDate === yesterdayStr ? `Hôm qua (${activeDate})` : `Ngày ${activeDate}`));
+
+      const topSendersHtml = topSenders.length > 0
+        ? topSenders.map((s, idx) => `
+            <div class="app-mgmt-row" style="padding:8px 0;cursor:pointer;" onclick="closeModal('dailyBriefingModal'); openNotificationDetail('${escapeAttr(s.sampleUid)}')">
+              <div class="app-mgmt-info">
+                <div class="app-mgmt-name">${idx + 1}. ${escapeHtml(s.title)} <span style="font-size:11px;color:var(--text-secondary);">(${escapeHtml(s.appName)})</span></div>
+              </div>
+              <span class="pill-badge badge-cloud">${s.count} tin • Xem chat ➔</span>
+            </div>
+          `).join("")
+        : `<div style="font-size:12.5px;color:var(--text-secondary);">Chưa có dữ liệu cuộc trò chuyện trong mốc này.</div>`;
+
+      const revokedHtml = revokedSamples.length > 0
+        ? revokedSamples.map((r) => `
+            <div class="app-mgmt-row" style="padding:7px 0;cursor:pointer;" onclick="closeModal('dailyBriefingModal'); openNotificationDetail('${escapeAttr(r.uid)}')">
+              <div class="app-mgmt-info">
+                <div class="app-mgmt-name" style="color:#FDA4AF;">🚫 ${escapeHtml(r.title)} (${escapeHtml(r.appName)})</div>
+                <div class="app-mgmt-meta" style="color:#F8FAFC;">"${escapeHtml(getDisplayBody(r).slice(0, 90))}"</div>
+              </div>
+              <span style="font-family:var(--font-mono);font-size:11px;color:var(--text-muted);">${formatShortSmartTime(r.time)}</span>
+            </div>
+          `).join("")
+        : `<div style="font-size:12.5px;color:var(--text-secondary);">Không có tin nhắn/ảnh nào bị thu hồi trong mốc này.</div>`;
+
+      box.innerHTML = `
+        <div class="sheet-title">
+          <span>✨ Tóm Tắt Thông Minh (AI Digest)</span>
+          <button class="icon-btn" onclick="closeModal('dailyBriefingModal')">✕</button>
+        </div>
+
+        <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px;">
+          <button class="date-scrubber-pill ${activeDate === todayStr ? 'active' : ''}" onclick="openDailyBriefingModal('${todayStr}')">☀️ Hôm nay</button>
+          <button class="date-scrubber-pill ${activeDate === yesterdayStr ? 'active' : ''}" onclick="openDailyBriefingModal('${yesterdayStr}')">🌙 Hôm qua</button>
+          <button class="date-scrubber-pill ${activeDate === 'ALL' ? 'active' : ''}" onclick="openDailyBriefingModal('ALL')">🌐 Toàn bộ kho (${allNotifications.length})</button>
+        </div>
+
+        <div class="mgmt-section" style="padding:13px;background:linear-gradient(145deg, rgba(14,165,233,0.14), rgba(19,22,31,0.95));border-color:rgba(56,189,248,0.4);">
+          <div style="font-size:13px;font-weight:700;color:#7DD3FC;margin-bottom:10px;">
+            📌 Báo cáo nhanh: ${escapeHtml(dateTitleLabel)}
+          </div>
+          <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:7px;text-align:center;">
+            <div style="background:rgba(255,255,255,0.05);padding:8px 4px;border-radius:12px;">
+              <div style="font-size:10px;color:var(--text-muted);">TỔNG TIN</div>
+              <div style="font-family:var(--font-mono);font-size:16px;font-weight:700;color:#FFF;">${sourceItems.length}</div>
+            </div>
+            <div style="background:rgba(255,255,255,0.05);padding:8px 4px;border-radius:12px;">
+              <div style="font-size:10px;color:#93C5FD;">TIN NHẮN</div>
+              <div style="font-family:var(--font-mono);font-size:16px;font-weight:700;color:#60A5FA;">${chatCnt}</div>
+            </div>
+            <div style="background:rgba(255,255,255,0.05);padding:8px 4px;border-radius:12px;">
+              <div style="font-size:10px;color:#7DD3FC;">ẢNH HD</div>
+              <div style="font-family:var(--font-mono);font-size:16px;font-weight:700;color:#38BDF8;">${mediaCnt}</div>
+            </div>
+            <div style="background:rgba(255,255,255,0.05);padding:8px 4px;border-radius:12px;">
+              <div style="font-size:10px;color:#FDA4AF;">THU HỒI</div>
+              <div style="font-family:var(--font-mono);font-size:16px;font-weight:700;color:#FB7185;">${revokedCnt}</div>
+            </div>
+          </div>
+          <div style="margin-top:10px;font-size:12px;color:var(--text-secondary);display:flex;justify-content:space-between;flex-wrap:wrap;gap:6px;">
+            <span>⏰ Giờ cao điểm: <strong>${peakHourCnt > 0 ? `${String(peakHour).padStart(2, '0')}:00 – ${String(peakHour).padStart(2, '0')}:59 (${peakHourCnt} tin)` : 'Chưa có'}</strong></span>
+            <span>💰 Thu/Chi: <strong style="color:#34D399;">+${totalIn.toLocaleString('vi-VN')}đ</strong> / <strong style="color:#FB7185;">-${totalOut.toLocaleString('vi-VN')}đ</strong></span>
+          </div>
+        </div>
+
+        <div class="mgmt-section" style="padding:13px;">
+          <div class="mgmt-section-title" style="font-size:13.5px;">
+            <span>💬 Top Người Gửi / Nhóm Sôi Nổi Nhất</span>
+            <span style="font-size:11px;color:var(--text-muted);">Chạm để mở chat</span>
+          </div>
+          ${topSendersHtml}
+        </div>
+
+        <div class="mgmt-section" style="padding:13px;border-color:rgba(244,63,94,0.35);">
+          <div class="mgmt-section-title" style="font-size:13.5px;">
+            <span style="color:#FDA4AF;">🕵️‍♂️ Hộp Đen Tin Nhắn &amp; Ảnh Bị Thu Hồi (${revokedCnt})</span>
+          </div>
+          ${revokedHtml}
+        </div>
+
+        <div class="btn-row" style="margin-top:8px;">
+          <button class="btn btn-primary" onclick="speakDailyBriefing('${escapeAttr(dateTitleLabel)}', ${sourceItems.length}, ${chatCnt}, ${mediaCnt}, ${revokedCnt}, '${escapeAttr(topSenders[0]?.title || '')}')">
+            🔊 Đọc Bản Tóm Tắt Tiếng Việt
+          </button>
+          ${activeDate !== "ALL" ? `
+          <button class="btn btn-success" onclick="closeModal('dailyBriefingModal'); selectDateFilter('${escapeAttr(activeDate)}')">
+            📅 Lọc xem ngày này
+          </button>` : ""}
+        </div>
+      `;
+      openModal("dailyBriefingModal");
+    }
+
+    function speakDailyBriefing(dateLabel, total, chatCnt, mediaCnt, revokedCnt, topSender) {
+      const topStr = topSender ? `Người nhắn nhiều nhất là ${topSender}. ` : "";
+      speakVietnamese(
+        `Bản tóm tắt ${dateLabel}: Tổng cộng có ${total} thông báo, bao gồm ${chatCnt} tin nhắn trò chuyện, ${mediaCnt} bức ảnh đã lưu và phát hiện ${revokedCnt} tin nhắn bị thu hồi. ${topStr}`
+      );
     }
 
     function appendMoreNotificationsToDom(step = 80) {
@@ -3761,6 +4115,19 @@
           </button>
         `);
         pills.push(`
+          <button class="briefing-trigger-btn" onclick="openDailyBriefingModal()">
+            ✨ Tóm tắt ngày
+          </button>
+        `);
+        if (currentHourSlot !== "ALL") {
+          const slotNames = { MORNING: "🌅 Sáng 6-12h", AFTERNOON: "☀️ Chiều 12-18h", EVENING: "🌆 Tối 18-24h", NIGHT: "🌙 Đêm 0-6h" };
+          pills.push(`
+            <button class="date-scrubber-pill active" onclick="selectHourSlot('ALL')">
+              ${slotNames[currentHourSlot] || currentHourSlot} ✕
+            </button>
+          `);
+        }
+        pills.push(`
           <button class="date-scrubber-pill ${currentDateFilter === "ALL" ? "active" : ""}" onclick="selectDateFilter('ALL')">
             Mọi ngày <span class="date-scrubber-cnt">${filtered.length}</span>
           </button>
@@ -3818,6 +4185,56 @@
         filtered = filtered.filter((item) => Number(item.time) >= cutoff);
       } else if (currentDateFilter !== "ALL") {
         filtered = filtered.filter((item) => (item.dateStr || formatDateOnly(item.time)) === currentDateFilter);
+      }
+
+      if (currentHourSlot !== "ALL") {
+        filtered = filtered.filter((item) => matchHourSlot(item.time, currentHourSlot));
+      }
+
+      // 5. Render Thanh Lọc Nhanh Theo Từng Ứng Dụng (Zalo, Messenger, Telegram...) dựa trên danh sách của ngày/tab đang chọn
+      const appQuickBar = document.getElementById("appQuickFilterBar");
+      if (appQuickBar) {
+        const appGroups = new Map();
+        for (const item of filtered) {
+          const fam = getAppFamilyKeyAndLabel(item);
+          let g = appGroups.get(fam.key);
+          if (!g) {
+            g = { key: fam.key, label: fam.label, color: fam.color, count: 0 };
+            appGroups.set(fam.key, g);
+          }
+          g.count++;
+        }
+        const sortedApps = Array.from(appGroups.values()).sort((a, b) => b.count - a.count);
+        const appChips = [];
+        appChips.push(`
+          <button class="app-filter-chip ${currentAppFilter === "ALL" ? "active" : ""}" onclick="selectAppFilter('ALL')">
+            📱 Tất cả App <span class="date-scrubber-cnt">${filtered.length}</span>
+          </button>
+        `);
+        if (currentTab === "revoked") {
+          appChips.push(`
+            <button class="app-filter-chip ${onlyRevokedMedia ? "active" : ""}" style="border-color:rgba(244,63,94,0.45);" onclick="toggleOnlyRevokedMedia()">
+              🖼️ Chỉ ảnh thu hồi
+            </button>
+          `);
+        }
+        for (const ag of sortedApps.slice(0, 12)) {
+          appChips.push(`
+            <button class="app-filter-chip ${currentAppFilter === ag.key ? "active" : ""}" onclick="selectAppFilter('${escapeAttr(ag.key)}')">
+              <span class="app-chip-dot" style="background:${ag.color};"></span>
+              ${escapeHtml(ag.label)} <span class="date-scrubber-cnt">${ag.count}</span>
+            </button>
+          `);
+        }
+        appQuickBar.innerHTML = appChips.join("");
+      }
+
+      if (currentAppFilter !== "ALL") {
+        filtered = filtered.filter((item) => getAppFamilyKeyAndLabel(item).key === currentAppFilter);
+      }
+
+      if (currentTab === "revoked" && onlyRevokedMedia) {
+        filtered = filtered.filter((item) => getItemMeta(item).hasMedia);
       }
 
       if (searchQuery) {
@@ -4056,7 +4473,7 @@
         if (!b64) continue;
         const src = formatB64Src(b64);
         cells.push(`
-          <div class="photo-grid-item" onclick="openLightbox('${escapeAttr(src)}')">
+          <div class="photo-grid-item" onclick="openLightbox('${escapeAttr(src)}', '${escapeAttr(item.uid)}')">
             <img src="${src}" alt="${escapeAttr(item.title)}" loading="lazy" />
             <div class="photo-grid-caption">${escapeHtml(item.appName)} • ${escapeHtml(item.title)}</div>
           </div>
@@ -4124,12 +4541,20 @@
       if (mediaB64) {
         const src = formatB64Src(mediaB64);
         mediaHtml = `
-          <div class="card-media-wrap" onclick="event.stopPropagation(); openLightbox('${escapeAttr(src)}')">
+          <div class="card-media-wrap" onclick="event.stopPropagation(); openLightbox('${escapeAttr(src)}', '${escapeAttr(item.uid)}')">
             <img class="card-media-img" src="${src}" alt="Ảnh đính kèm" loading="lazy" />
-            <span class="media-zoom-pill">Xem ảnh</span>
+            <span class="media-zoom-pill">🔍 Xem ảnh &amp; Vuốt</span>
           </div>
         `;
       }
+
+      // Anti-Revoke Blackbox Banner
+      const revokedBlackboxHtml = item.isRevoked
+        ? `<div class="revoked-blackbox-bar">
+             <span>🛡️ Đã cứu ${mediaB64 ? "ảnh &amp; tin nhắn" : "nội dung gốc"} trước khi thu hồi</span>
+             <span style="font-family:var(--font-mono);font-size:10.5px;">${formatDateTime(item.time)}</span>
+           </div>`
+        : "";
 
       // Contextual Smart Chips (OTP, Tracking Code, Promo Code, Phone, Link)
       const chips = [];
@@ -4199,6 +4624,7 @@
                 ${badges.join("")}
               </div>
               <div class="card-body selectable">${escapeHtml(body)}</div>
+              ${revokedBlackboxHtml}
               ${mediaHtml}
               ${chipsBarHtml}
             </div>
@@ -4934,13 +5360,85 @@
       }
     }
 
-    function openLightbox(src) {
+    function buildLightboxGalleryList() {
+      const source = (currentFilteredItemsCache && currentFilteredItemsCache.length > 0)
+        ? currentFilteredItemsCache
+        : allNotifications;
+      const list = [];
+      for (const item of source) {
+        const b64 = getItemMediaB64(item);
+        if (b64 && b64.length > 50) {
+          list.push({
+            uid: item.uid,
+            src: formatB64Src(b64),
+            title: item.title || item.appName,
+            appName: item.appName,
+            time: item.time,
+            isRevoked: item.isRevoked
+          });
+        }
+      }
+      return list;
+    }
+
+    function openLightbox(src, uid = "") {
       currentLightboxSrc = src || "";
+      currentLightboxUid = uid || "";
       currentLightboxEnhanced = false;
+
+      currentLightboxList = buildLightboxGalleryList();
+      if (currentLightboxUid) {
+        currentLightboxIndex = currentLightboxList.findIndex((x) => x.uid === currentLightboxUid);
+      } else {
+        currentLightboxIndex = currentLightboxList.findIndex((x) => x.src === currentLightboxSrc);
+      }
+      if (currentLightboxIndex >= 0 && !currentLightboxUid) {
+        currentLightboxUid = currentLightboxList[currentLightboxIndex].uid;
+      }
+
+      renderCurrentLightboxSlide();
       const overlay = document.getElementById("lightboxOverlay");
+      if (overlay) overlay.classList.add("open");
+    }
+
+    function renderCurrentLightboxSlide() {
       const img = document.getElementById("lightboxImg");
       const badge = document.getElementById("lightboxResBadge");
-      if (badge) badge.textContent = "📐 Đang đọc ảnh...";
+      const metaSub = document.getElementById("lightboxMetaSub");
+      const btnChat = document.getElementById("btnLbOpenChat");
+      const btnPrev = document.getElementById("btnLbPrev");
+      const btnNext = document.getElementById("btnLbNext");
+
+      const entry = (currentLightboxIndex >= 0 && currentLightboxIndex < currentLightboxList.length)
+        ? currentLightboxList[currentLightboxIndex]
+        : null;
+
+      if (entry) {
+        currentLightboxSrc = entry.src;
+        currentLightboxUid = entry.uid;
+      }
+
+      const posPrefix = (currentLightboxList.length > 1 && currentLightboxIndex >= 0)
+        ? `📸 Ảnh ${currentLightboxIndex + 1}/${currentLightboxList.length} • `
+        : "📐 ";
+
+      if (badge) badge.textContent = `${posPrefix}Đang đọc ảnh...`;
+      if (metaSub) {
+        metaSub.textContent = entry
+          ? `${entry.appName}: ${entry.title} • ${formatDateTime(entry.time)}${entry.isRevoked ? " (ĐÃ THU HỒI)" : ""}`
+          : "";
+      }
+      if (btnChat) {
+        btnChat.style.display = currentLightboxUid ? "inline-flex" : "none";
+      }
+      if (btnPrev) {
+        btnPrev.style.opacity = (currentLightboxList.length > 1) ? "1" : "0.4";
+      }
+      if (btnNext) {
+        btnNext.style.opacity = (currentLightboxList.length > 1) ? "1" : "0.4";
+      }
+
+      currentLightboxEnhanced = false;
       setLightboxZoomMode("fit");
       if (img) {
         img.onload = () => {
@@ -4949,21 +5447,35 @@
           if (!currentLightboxEnhanced && badge) {
             const isLowResOld = Math.max(nw, nh) <= 540;
             badge.textContent = isLowResOld
-              ? `📐 ${nw}×${nh}px (Ảnh cũ nén 520p • Bấm ✨ Làm nét HD)`
-              : `📐 ${nw}×${nh}px • Chuẩn HD`;
+              ? `${posPrefix}${nw}×${nh}px (Bấm ✨ Làm nét HD)`
+              : `${posPrefix}${nw}×${nh}px • Chuẩn HD`;
           }
-          // Nếu là ảnh chụp màn hình dài (Tall Screenshot như ảnh Messenger/Zalo), tự động mở Rộng 100% để đọc rõ chữ và cuộn dọc!
           if (nh > nw * 1.55 && currentLightboxZoomMode === "fit") {
             setLightboxZoomMode("width100");
           }
-          // Nếu ảnh cũ có chiều ngang quá nhỏ (< 360px), tự động kích hoạt khử mờ HD 2x ngay lập tức!
           if (!currentLightboxEnhanced && nw > 0 && nw < 360) {
             setTimeout(() => enhanceCurrentLightboxPhotoHd(true), 60);
           }
         };
-        img.src = src;
+        img.src = currentLightboxSrc;
       }
-      if (overlay) overlay.classList.add("open");
+    }
+
+    function stepLightboxPhoto(delta) {
+      if (!currentLightboxList || currentLightboxList.length <= 1) {
+        showToast("Chỉ có 1 ảnh trong danh sách lọc hiện tại");
+        return;
+      }
+      currentLightboxIndex = (currentLightboxIndex + delta + currentLightboxList.length) % currentLightboxList.length;
+      renderCurrentLightboxSlide();
+    }
+
+    function openCurrentLightboxChat() {
+      const uid = currentLightboxUid;
+      closeLightbox();
+      if (uid) {
+        openNotificationDetail(uid);
+      }
     }
 
     function closeLightbox() {
@@ -5473,11 +5985,26 @@
         });
       }
 
-      // Tự động cuộn vô cực mượt mà 120Hz (Incremental DOM Append — Không bao giờ dựng lại toàn bộ innerHTML khi cuộn!)
+      // Tự động cuộn vô cực mượt mà 120Hz + Tự động thu gọn Header khi vuốt xuống đọc tin (+35% diện tích màn hình)
       let isScrollAppending = false;
+      let lastScrollY = window.scrollY || 0;
+      const topHeaderEl = document.querySelector(".top-header");
+
       window.addEventListener("scroll", () => {
+        const curY = window.scrollY || 0;
+        const deltaY = curY - lastScrollY;
+        lastScrollY = curY;
+
+        if (topHeaderEl && currentTab !== "manage") {
+          if (curY > 110 && deltaY > 10) {
+            topHeaderEl.classList.add("scroll-collapsed");
+          } else if (deltaY < -8 || curY < 45) {
+            topHeaderEl.classList.remove("scroll-collapsed");
+          }
+        }
+
         if (currentTab === "manage" || isScrollAppending) return;
-        const scrollBottom = window.innerHeight + window.scrollY;
+        const scrollBottom = window.innerHeight + curY;
         const docHeight = document.documentElement.scrollHeight || document.body.scrollHeight;
         if (docHeight - scrollBottom < 520 && visibleRenderLimit < currentFilteredLength) {
           isScrollAppending = true;
@@ -5487,6 +6014,37 @@
           });
         }
       }, { passive: true });
+
+      // Hỗ trợ vuốt Trái / Phải (Touch Swipe) và phím mũi tên trong Lightbox để xem liên tiếp 543+ ảnh
+      const lbVp = document.getElementById("lightboxViewport");
+      let lbTouchStartX = 0;
+      let lbTouchStartY = 0;
+      if (lbVp) {
+        lbVp.addEventListener("touchstart", (e) => {
+          if (e.touches && e.touches.length === 1) {
+            lbTouchStartX = e.touches[0].clientX;
+            lbTouchStartY = e.touches[0].clientY;
+          }
+        }, { passive: true });
+        lbVp.addEventListener("touchend", (e) => {
+          if (currentLightboxZoomMode === "zoom2x" || currentLightboxZoomMode === "zoom3x") return;
+          if (e.changedTouches && e.changedTouches.length === 1) {
+            const dx = e.changedTouches[0].clientX - lbTouchStartX;
+            const dy = e.changedTouches[0].clientY - lbTouchStartY;
+            if (Math.abs(dx) > 64 && Math.abs(dx) > Math.abs(dy) * 1.4) {
+              if (dx < 0) stepLightboxPhoto(1);
+              else stepLightboxPhoto(-1);
+            }
+          }
+        }, { passive: true });
+      }
+      window.addEventListener("keydown", (e) => {
+        const overlay = document.getElementById("lightboxOverlay");
+        if (!overlay || !overlay.classList.contains("open")) return;
+        if (e.key === "ArrowRight") stepLightboxPhoto(1);
+        else if (e.key === "ArrowLeft") stepLightboxPhoto(-1);
+        else if (e.key === "Escape") closeLightbox();
+      });
 
       // BƯỚC 1 (0ms Instant First Paint): Hiển thị ngay lập tức bộ đệm siêu nhẹ từ localStorage trước khi mở DB
       const fastBootItems = loadFastBootItemsSync();
