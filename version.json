@@ -1,8 +1,11 @@
 {
-  "versionCode": 18,
-  "versionName": "10.3.0-Chronos",
-  "apkUrl": "https://trung1560x2.github.io/NotiStarCloud-iOS/NotiStarCloud.apk",
+  "versionCode": 19,
+  "androidVersionCode": 19,
+  "versionName": "10.3.1-Chronos",
+  "androidApkUrl": "https://trung1560x2.github.io/NotiStarCloud-iOS/NotiStarCloud_OneUI7_AutoDrive.apk",
+  "apkUrl": "https://trung1560x2.github.io/NotiStarCloud-iOS/NotiStarCloud_OneUI7_AutoDrive.apk",
   "webappUrl": "https://trung1560x2.github.io/NotiStarCloud-iOS/",
   "resetFalseRevokedVersion": 4,
-  "releaseNotes": "v10.3.0-Chronos (Deep Engine Optimization): 1. SQLite WAL Mode + 8MB Page Cache + Fix Date Index Query + Auto Background Optimizer (PRAGMA optimize & wal_checkpoint). 2. Direct Binary Image Stream (https://notistar.local/media/{id}) via WebView shouldInterceptRequest — giảm 98% dung lượng JSON qua JNI, tải 543+ ảnh HD 120Hz không tốn RAM chuỗi Base64. 3. O(1) Memoized Partition Engine (dataRevision) + 2-Stage IndexedDB Reverse Cursor + CSS content-visibility."
+  "changelog": "v10.3.1-Chronos (Deep Engine Optimization + OTA Fix):\n1. Đồng bộ chuẩn đường dẫn tải OTA (NotiStarCloud_OneUI7_AutoDrive.apk & NotiStarCloud.apk) giúp tự nâng cấp phiên bản chính xác 100%.\n2. SQLite WAL Mode + 8MB RAM Page Cache + Sửa truy vấn Index ngày (date = ?) + Tự động tối ưu ngầm.\n3. Luồng ảnh nhị phân trực tiếp (https://notistar.local/media/{id}) qua WebView shouldInterceptRequest — giảm 98% JSON qua JNI, tải 543+ ảnh HD 120Hz không tốn RAM Base64.\n4. O(1) Memoized Partition Engine (dataRevision) + 2-Stage IndexedDB Reverse Cursor.",
+  "releaseNotes": "v10.3.1-Chronos (Deep Engine Optimization + OTA Fix):\n1. Đồng bộ chuẩn đường dẫn tải OTA (NotiStarCloud_OneUI7_AutoDrive.apk & NotiStarCloud.apk) giúp tự nâng cấp phiên bản chính xác 100%.\n2. SQLite WAL Mode + 8MB RAM Page Cache + Sửa truy vấn Index ngày (date = ?) + Tự động tối ưu ngầm.\n3. Luồng ảnh nhị phân trực tiếp (https://notistar.local/media/{id}) qua WebView shouldInterceptRequest — giảm 98% JSON qua JNI, tải 543+ ảnh HD 120Hz không tốn RAM Base64.\n4. O(1) Memoized Partition Engine (dataRevision) + 2-Stage IndexedDB Reverse Cursor."
 }

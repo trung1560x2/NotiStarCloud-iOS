@@ -2295,8 +2295,8 @@
       OTA_VERSION: "notistar_ios_ota_version_code",
       CLEANED_V3: "notistar_ios_cleaned_false_revoked_v3"
     };
-    const CURRENT_OTA_VERSION_CODE = 18;
-    const CURRENT_OTA_VERSION_NAME = "10.3.0-Chronos";
+    const CURRENT_OTA_VERSION_CODE = 19;
+    const CURRENT_OTA_VERSION_NAME = "10.3.1-Chronos";
     const INITIAL_RENDER_LIMIT = 55;
 
     const IDB_NAME = "NotiStarCloud_iOS_DB";
@@ -5129,7 +5129,7 @@
         <div class="ota-banner">
           <div class="mgmt-section-title">
             <span>🚀 Cập nhật Tự động Qua Mạng (OTA Update)</span>
-            <span class="pill-badge badge-cloud">v${CURRENT_OTA_VERSION_NAME}</span>
+            <span class="pill-badge badge-cloud">v${(IS_ANDROID_NATIVE && window.AndroidNative.getAppVersionName) ? window.AndroidNative.getAppVersionName() : CURRENT_OTA_VERSION_NAME}</span>
           </div>
           <p class="mgmt-section-sub" style="margin-bottom:10px;">
             Không cần cắm cáp hay tải lại thủ công! Cả bản <strong>iOS</strong> và <strong>Android</strong> đều tự động nhận bản vá &amp; tính năng mới trực tiếp qua mạng.
