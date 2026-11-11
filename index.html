@@ -6173,7 +6173,7 @@
     function buildExportSafeFileBase(senderTitle, appName) {
       const clean = `${senderTitle || "Doituong"}_${appName || ""}`
         .normalize("NFD")
-        .replace(/[̀-ͯ]/g, "")
+        .replace(/[\u0300-\u036f]/g, "")
         .replace(/đ/g, "d").replace(/Đ/g, "D")
         .replace(/[^a-zA-Z0-9_-]+/g, "_")
         .replace(/^_+|_+$/g, "")
@@ -6190,9 +6190,7 @@
         return;
       }
       const lines = items.map((m) => `[${formatDateTime(m.time)}] ${m.title || st.senderTitle}${m.isRevoked ? " (ĐÃ THU HỒI)" : ""}: ${getDisplayBody(m)}`);
-      const fullText = `=== Hồ sơ thông báo: ${st.senderTitle} (${st.appName}) — ${items.length} tin ===
-` + lines.join("
-");
+      const fullText = `=== Hồ sơ thông báo: ${st.senderTitle} (${st.appName}) — ${items.length} tin ===\n` + lines.join("\n");
       copyTextToClipboard(fullText, `📋 Đã sao chép ${items.length} tin nhắn của ${st.senderTitle}!`);
     }
 
@@ -6221,32 +6219,23 @@
           `Ngày xuất : ${formatDateTime(Date.now())}`,
           "================================================================",
           ""
-        ].join("
-");
+        ].join("\n");
         const bodyLines = items.map((m, idx) => {
           const flags = [
             m.isRevoked ? "[ĐÃ THU HỒI]" : "",
             m.isStarred ? "[VIP ★]" : "",
             (hasMedia(m) || m.hasPicture) ? "[CÓ ẢNH]" : ""
           ].filter(Boolean).join(" ");
-          return `${idx + 1}. [${formatDateTime(m.time)}] ${m.title || st.senderTitle} ${flags}
-   ${getDisplayBody(m).replace(/
-/g, "
-   ")}`;
-        }).join("
-
-");
-        const blob = new Blob([header + bodyLines + "
-"], { type: "text/plain;charset=utf-8" });
+          return `${idx + 1}. [${formatDateTime(m.time)}] ${m.title || st.senderTitle} ${flags}\n   ${getDisplayBody(m).replace(/\n/g, "\n   ")}`;
+        }).join("\n\n");
+        const blob = new Blob([header + bodyLines + "\n"], { type: "text/plain;charset=utf-8" });
         await triggerFileDownload(blob, `${fileBase}.txt`, st.openShareAfterSave);
         return;
       }
 
       if (fmt === "csv") {
-        const esc = (v) => `"${String(v || "").replace(/?
-/g, " ").replace(/"/g, '""')}"`;
-        let csv = "﻿STT,ID,Thời gian,Ngày,Ứng dụng,Đối tượng / Tiêu đề,Nội dung chi tiết,Thu hồi,Ghim VIP,Có ảnh
-";
+        const esc = (v) => `"${String(v || "").replace(/\r?\n/g, " ").replace(/"/g, '""')}"`;
+        let csv = "\uFEFFSTT,ID,Thời gian,Ngày,Ứng dụng,Đối tượng / Tiêu đề,Nội dung chi tiết,Thu hồi,Ghim VIP,Có ảnh\r\n";
         items.forEach((n, idx) => {
           csv += [
             idx + 1,
@@ -6259,8 +6248,7 @@
             esc(n.isRevoked ? "Đã thu hồi" : "Bình thường"),
             esc(n.isStarred ? "Có" : "Không"),
             esc((hasMedia(n) || n.hasPicture) ? "Có ảnh" : "Không")
-          ].join(",") + "
-";
+          ].join(",") + "\r\n";
         });
         const blob = new Blob([csv], { type: "text/csv;charset=utf-8" });
         await triggerFileDownload(blob, `${fileBase}.csv`, st.openShareAfterSave);
@@ -6308,8 +6296,7 @@
       // fmt === "html" (Recommended rich offline report)
       let embeddedPhotos = 0;
       const cardsHtml = items.map((m) => {
-        const body = escapeHtml(getDisplayBody(m)).replace(/
-/g, "<br/>");
+        const body = escapeHtml(getDisplayBody(m)).replace(/\n/g, "<br/>");
         let imgTag = "";
         if (st.includeMedia) {
           const dataUrl = resolveItemEmbeddedDataUrl(m);
@@ -6338,8 +6325,7 @@
             ${imgTag}
           </article>
         `;
-      }).join("
-");
+      }).join("\n");
 
       const revokedTotal = items.filter((x) => x.isRevoked).length;
       const htmlReport = `<!DOCTYPE html>
