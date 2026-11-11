@@ -1,11 +1,11 @@
 {
-  "versionCode": 20,
-  "androidVersionCode": 20,
-  "versionName": "10.3.2-Chronos",
+  "versionCode": 21,
+  "androidVersionCode": 21,
+  "versionName": "10.4.0-Chronos",
   "androidApkUrl": "https://trung1560x2.github.io/NotiStarCloud-iOS/NotiStarCloud_OneUI7_AutoDrive.apk",
   "apkUrl": "https://trung1560x2.github.io/NotiStarCloud-iOS/NotiStarCloud_OneUI7_AutoDrive.apk",
   "webappUrl": "https://trung1560x2.github.io/NotiStarCloud-iOS/",
   "resetFalseRevokedVersion": 4,
-  "changelog": "v10.3.2-Chronos (120Hz Zero-Jitter Scroll Fix):\n1. Khóa cố định chiều cao thanh Header (loại bỏ cơ chế ẩn/hiện làm hụt 130px gây giật khi kéo xuống rồi kéo lên).\n2. Tắt content-visibility: auto lệch chiều cao và khóa khung ảnh 186px cố định, chống nhảy vị trí trang 100% khi cuộn ngược.\n3. Tối ưu sự kiện cuộn bằng requestAnimationFrame (RAF-throttled) kết hợp GPU Layer (translateZ) mượt 120Hz.\n4. Bao gồm toàn bộ nhân SQLite WAL + Luồng ảnh nhị phân trực tiếp + O(1) Partition Cache.",
-  "releaseNotes": "v10.3.2-Chronos (120Hz Zero-Jitter Scroll Fix):\n1. Khóa cố định chiều cao thanh Header (loại bỏ cơ chế ẩn/hiện làm hụt 130px gây giật khi kéo xuống rồi kéo lên).\n2. Tắt content-visibility: auto lệch chiều cao và khóa khung ảnh 186px cố định, chống nhảy vị trí trang 100% khi cuộn ngược.\n3. Tối ưu sự kiện cuộn bằng requestAnimationFrame (RAF-throttled) kết hợp GPU Layer (translateZ) mượt 120Hz.\n4. Bao gồm toàn bộ nhân SQLite WAL + Luồng ảnh nhị phân trực tiếp + O(1) Partition Cache."
+  "changelog": "v10.4.0-Chronos (Export Thông báo theo Đối tượng):\n1. Thêm tính năng Xuất (Export) toàn bộ thông báo của từng Đối tượng/Người gửi/Nhóm chat với đủ 4 định dạng: Báo cáo HTML đẹp (kèm ảnh gốc), Excel .CSV (UTF-8), Văn bản .TXT và Dữ liệu gốc .JSON.\n2. Tích hợp tại cả 2 nơi: Nút '📥 Xuất file' ngay trong cửa sổ Hội thoại & Khu vực '👤 Xuất Thông báo theo Đối tượng' có tìm kiếm + lọc theo ngày trong tab Quản lý.\n3. Nâng cấp Android Native FileSaver: tự động lưu thẳng vào Download/NotiStar trên điện thoại và bật hộp thoại Chia sẻ (Zalo, Drive, Email...), đồng thời sửa triệt để chức năng xuất .JSON/.CSV trong Android WebView.",
+  "releaseNotes": "v10.4.0-Chronos (Export Thông báo theo Đối tượng):\n1. Thêm tính năng Xuất (Export) toàn bộ thông báo của từng Đối tượng/Người gửi/Nhóm chat với đủ 4 định dạng: Báo cáo HTML đẹp (kèm ảnh gốc), Excel .CSV (UTF-8), Văn bản .TXT và Dữ liệu gốc .JSON.\n2. Tích hợp tại cả 2 nơi: Nút '📥 Xuất file' ngay trong cửa sổ Hội thoại & Khu vực '👤 Xuất Thông báo theo Đối tượng' có tìm kiếm + lọc theo ngày trong tab Quản lý.\n3. Nâng cấp Android Native FileSaver: tự động lưu thẳng vào Download/NotiStar trên điện thoại và bật hộp thoại Chia sẻ (Zalo, Drive, Email...), đồng thời sửa triệt để chức năng xuất .JSON/.CSV trong Android WebView."
 }
