@@ -2347,8 +2347,8 @@
       OTA_VERSION: "notistar_ios_ota_version_code",
       CLEANED_V3: "notistar_ios_cleaned_false_revoked_v3"
     };
-    const CURRENT_OTA_VERSION_CODE = 21;
-    const CURRENT_OTA_VERSION_NAME = "10.4.0-Chronos";
+    const CURRENT_OTA_VERSION_CODE = 22;
+    const CURRENT_OTA_VERSION_NAME = "10.4.1-Chronos";
     const INITIAL_RENDER_LIMIT = 55;
 
     const IDB_NAME = "NotiStarCloud_iOS_DB";
@@ -5817,8 +5817,12 @@
             showToast(`✅ Đã lưu vào ${res}`);
             return res;
           }
+          if (res && res.startsWith("ERR:")) {
+            showToast(`⚠️ Không thể lưu file (${res.slice(4)})`);
+          }
         } catch (e) {
           console.error("Native saveExportFileAndShare fallback", e);
+          showToast("⚠️ Trình duyệt từ chối xuất file quá lớn hoặc thiếu quyền");
         }
       }
 
@@ -6797,56 +6801,71 @@
       });
 
       // BƯỚC 1 (0ms Instant First Paint): Hiển thị ngay lập tức bộ đệm siêu nhẹ từ localStorage trước khi mở DB
-      const fastBootItems = loadFastBootItemsSync();
-      if (fastBootItems.length > 0) {
-        allNotifications = fastBootItems.map((it) => (it.uid && it.dateStr ? it : normalizeNotification(it)));
-        dataRevision++;
-        renderApp();
+      try {
+        const fastBootItems = loadFastBootItemsSync();
+        if (fastBootItems.length > 0) {
+          allNotifications = fastBootItems.map((it) => (it.uid && it.dateStr ? it : normalizeNotification(it)));
+          dataRevision++;
+          renderApp();
+        }
+      } catch (e) {
+        console.error("FastBoot error", e);
       }
 
       // BƯỚC 2: Nếu chạy trên Android Native, nạp nhanh 180 tin mới nhất từ SQLite WAL (<10ms, Zero-Base64)
-      if (IS_ANDROID_NATIVE) {
-        await syncFromAndroidNativeDb(false, false);
-      } else {
-        // Trên iOS/Web: Đọc nhanh 320 tin mới nhất bằng IndexedDB Reverse Cursor (<12ms)
-        const recentIdb = await loadRecentFromLocalDb(320);
-        if (recentIdb.length > 0) {
-          await mergeIncomingNotifications(recentIdb, false);
+      try {
+        if (IS_ANDROID_NATIVE) {
+          await syncFromAndroidNativeDb(false, false);
+        } else {
+          // Trên iOS/Web: Đọc nhanh 320 tin mới nhất bằng IndexedDB Reverse Cursor (<12ms)
+          const recentIdb = await loadRecentFromLocalDb(320);
+          if (recentIdb.length > 0) {
+            await mergeIncomingNotifications(recentIdb, false);
+          }
         }
+      } catch (e) {
+        console.error("Initial DB boot error", e);
+        renderApp();
       }
 
       // BƯỚC 3: Nạp bất đồng bộ toàn bộ kho lịch sử ở chế độ nền (Idle Hydration)
       setTimeout(() => {
         loadAllFromLocalDb().then(async (idbItems) => {
-        if (idbItems && idbItems.length > 0) {
-          await mergeIncomingNotifications(idbItems, false);
-        }
-        if (localStorage.getItem(STORAGE_KEYS.CLEANED_V3) !== "1") {
-          localStorage.setItem(STORAGE_KEYS.CLEANED_V3, "1");
-          allNotifications = allNotifications.filter(
-            (n) => !(n.packageName === "com.notistar.cloud" && String(n.title || "").startsWith("🚨"))
-          );
-          for (const item of allNotifications) {
-            if (item.isRevoked && item.key !== "demo_zalo_2") {
-              item.isRevoked = false;
+          if (idbItems && idbItems.length > 0) {
+            await mergeIncomingNotifications(idbItems, false);
+          }
+          if (localStorage.getItem(STORAGE_KEYS.CLEANED_V3) !== "1") {
+            localStorage.setItem(STORAGE_KEYS.CLEANED_V3, "1");
+            allNotifications = allNotifications.filter(
+              (n) => !(n.packageName === "com.notistar.cloud" && String(n.title || "").startsWith("🚨"))
+            );
+            for (const item of allNotifications) {
+              if (item.isRevoked && item.key !== "demo_zalo_2") {
+                item.isRevoked = false;
+              }
             }
+            await saveAllToLocalDb(allNotifications);
           }
-          await saveAllToLocalDb(allNotifications);
-        }
-        scheduleRenderApp();
+          scheduleRenderApp();
 
-        // Nạp phần lịch sử còn lại từ SQLite Android ở chế độ nền (sau 750ms)
-        if (IS_ANDROID_NATIVE) {
-          setTimeout(() => syncFromAndroidNativeDb(false, true), 750);
-        }
-
-        // Chỉ nạp tệp cloud_snapshot.json ở nền nếu lần đầu cài hoặc chưa có dữ liệu
-        setTimeout(async () => {
-          await loadCloudSnapshotIfAvailable(false);
-          if (allNotifications.length === 0) {
-            await seedSampleDataIfNeeded(false);
+          // Nạp phần lịch sử còn lại từ SQLite Android ở chế độ nền (sau 750ms)
+          if (IS_ANDROID_NATIVE) {
+            setTimeout(() => syncFromAndroidNativeDb(false, true), 750);
           }
-        }, 550);
+
+          // Chỉ nạp tệp cloud_snapshot.json ở nền nếu lần đầu cài hoặc chưa có dữ liệu
+          setTimeout(async () => {
+            await loadCloudSnapshotIfAvailable(false);
+            if (allNotifications.length === 0) {
+              await seedSampleDataIfNeeded(false);
+            }
+          }, 550);
+        }).catch((err) => {
+          console.error("Background DB hydration error", err);
+          if (IS_ANDROID_NATIVE) {
+            setTimeout(() => syncFromAndroidNativeDb(false, true), 450);
+          }
+          scheduleRenderApp();
         });
       }, 120);
 
