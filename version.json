@@ -1,11 +1,11 @@
 {
-  "versionCode": 22,
-  "androidVersionCode": 22,
-  "versionName": "10.4.1-Chronos",
+  "versionCode": 23,
+  "androidVersionCode": 23,
+  "versionName": "10.5.0-Chronos",
   "androidApkUrl": "https://trung1560x2.github.io/NotiStarCloud-iOS/NotiStarCloud_OneUI7_AutoDrive.apk",
   "apkUrl": "https://trung1560x2.github.io/NotiStarCloud-iOS/NotiStarCloud_OneUI7_AutoDrive.apk",
   "webappUrl": "https://trung1560x2.github.io/NotiStarCloud-iOS/",
   "resetFalseRevokedVersion": 4,
-  "changelog": "v10.4.1-Chronos (Hotfix Khởi động & Cache + Export theo Đối tượng):\n1. Khắc phục triệt để lỗi treo JS khi nâng cấp qua OTA và nâng Service Worker lên v12 để tự động xóa cache cũ trên mọi máy.\n2. Gia cố cơ chế khởi động SQLite/IndexedDB (0ms không treo) và sửa hoàn chỉnh tính năng Xuất (Export) thông báo theo từng Đối tượng/Người gửi/Nhóm chat với 4 định dạng (HTML kèm ảnh gốc, Excel .CSV, Văn bản .TXT, .JSON).\n3. Tự động lưu thẳng file xuất vào Download/NotiStar trên Android và bật hộp thoại Chia sẻ.",
-  "releaseNotes": "v10.4.1-Chronos (Hotfix Khởi động & Cache + Export theo Đối tượng):\n1. Khắc phục triệt để lỗi treo JS khi nâng cấp qua OTA và nâng Service Worker lên v12 để tự động xóa cache cũ trên mọi máy.\n2. Gia cố cơ chế khởi động SQLite/IndexedDB (0ms không treo) và sửa hoàn chỉnh tính năng Xuất (Export) thông báo theo từng Đối tượng/Người gửi/Nhóm chat với 4 định dạng (HTML kèm ảnh gốc, Excel .CSV, Văn bản .TXT, .JSON).\n3. Tự động lưu thẳng vào Download/NotiStar trên Android và bật hộp thoại Chia sẻ."
+  "changelog": "v10.5.0-Chronos (Bộ lọc App Thông Minh, Ghim Chat & Tìm kiếm Từ viết tắt):\n1. Thêm nút 'Chọn App (N)' mở Bảng Chọn Ứng Dụng toàn phần: hiển thị đầy đủ mọi app có trong kho, không còn bị giới hạn top 12 như trước.\n2. Hỗ trợ Ghim app yêu thích (📌 Telegram, Zalo, Messenger), ẩn app hệ thống rườm rà ngoài thanh lọc nhanh, và chế độ Chọn nhiều App cùng lúc.\n3. Hỗ trợ gõ tắt thông minh ('tele', 'tg', 'zl', 'mess', 'vcb'...) + Banner bối cảnh đang lọc kèm nút 📥 Xuất toàn bộ theo App.",
+  "releaseNotes": "v10.5.0-Chronos (Bộ lọc App Thông Minh, Ghim Chat & Tìm kiếm Từ viết tắt):\n1. Thêm nút 'Chọn App (N)' mở Bảng Chọn Ứng Dụng toàn phần: hiển thị đầy đủ mọi app có trong kho, không còn bị giới hạn top 12 như trước.\n2. Hỗ trợ Ghim app yêu thích (📌 Telegram, Zalo, Messenger), ẩn app hệ thống rườm rà ngoài thanh lọc nhanh, và chế độ Chọn nhiều App cùng lúc.\n3. Hỗ trợ gõ tắt thông minh ('tele', 'tg', 'zl', 'mess', 'vcb'...) + Banner bối cảnh đang lọc kèm nút 📥 Xuất toàn bộ theo App."
 }

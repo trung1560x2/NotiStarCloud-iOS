@@ -20,6 +20,7 @@
 
       <style>
     :root {
+      color-scheme: dark;
       --bg-root: #05060A;
       --bg-surface: #0D1017;
       --bg-grouped: #131620;
@@ -162,6 +163,210 @@
       height: 7px;
       border-radius: 50%;
       flex-shrink: 0;
+    }
+
+    .app-picker-trigger {
+      position: sticky;
+      left: 0;
+      z-index: 3;
+      flex-shrink: 0;
+      padding: 5px 11px;
+      border-radius: var(--radius-pill);
+      background: rgba(14, 165, 233, 0.16);
+      border: 0.5px solid rgba(56, 189, 248, 0.5);
+      color: #E0F2FE;
+      font-size: 11.5px;
+      font-weight: 700;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.45);
+      transition: transform 0.14s cubic-bezier(0.32, 0.72, 0, 1), background 0.14s ease;
+    }
+    .app-picker-trigger:active { transform: scale(0.95); }
+    .app-picker-trigger.has-filter {
+      background: rgba(14, 165, 233, 0.32);
+      border-color: #7DD3FC;
+      color: #FFFFFF;
+    }
+    .app-picker-trigger svg {
+      width: 13px;
+      height: 13px;
+      stroke: currentColor;
+      fill: none;
+      stroke-width: 2;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+
+    .active-app-banner {
+      display: none;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin: 0 0 12px 0;
+      padding: 10px 12px;
+      border-radius: 14px;
+      background: linear-gradient(155deg, rgba(14, 165, 233, 0.13), rgba(17, 24, 39, 0.92));
+      border: 0.5px solid rgba(56, 189, 248, 0.36);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08);
+    }
+    .active-app-banner.visible { display: flex; }
+
+    .active-app-banner-meta {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      flex-wrap: wrap;
+      min-width: 0;
+      font-size: 12.5px;
+      color: #E0F2FE;
+    }
+
+    .active-app-banner-actions {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+
+    .app-picker-sticky-head {
+      position: sticky;
+      top: -14px;
+      z-index: 4;
+      background: #1C1C1E;
+      padding: 6px 0 10px 0;
+      border-bottom: 0.5px solid rgba(255, 255, 255, 0.08);
+      margin-bottom: 10px;
+    }
+
+    .app-picker-controls {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      flex-wrap: wrap;
+      margin-top: 8px;
+    }
+
+    .app-picker-list {
+      display: flex;
+      flex-direction: column;
+      gap: 7px;
+    }
+
+    .app-picker-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      padding: 10px 11px;
+      border-radius: 14px;
+      background: rgba(255, 255, 255, 0.04);
+      border: 0.5px solid rgba(255, 255, 255, 0.09);
+      transition: transform 0.12s ease, background 0.14s ease, border-color 0.14s ease;
+    }
+    .app-picker-row.selected {
+      background: rgba(14, 165, 233, 0.18);
+      border-color: #38BDF8;
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.12);
+    }
+    .app-picker-row-main {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      min-width: 0;
+      flex: 1;
+      cursor: pointer;
+    }
+    .app-picker-row-main:active { transform: scale(0.985); }
+
+    .app-picker-icon {
+      width: 34px;
+      height: 34px;
+      border-radius: 10px;
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 13px;
+      font-weight: 800;
+      color: #FFFFFF;
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.2);
+    }
+    .app-picker-icon svg {
+      width: 17px;
+      height: 17px;
+      fill: #FFFFFF;
+    }
+
+    .app-picker-info {
+      min-width: 0;
+      flex: 1;
+    }
+    .app-picker-name {
+      font-size: 13.5px;
+      font-weight: 700;
+      color: #F8FAFC;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+    .app-picker-sub {
+      font-size: 11px;
+      color: var(--text-secondary);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      margin-top: 2px;
+    }
+
+    .app-picker-actions {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      flex-shrink: 0;
+    }
+
+    .app-mini-btn {
+      padding: 6px 8px;
+      border-radius: 10px;
+      background: rgba(255, 255, 255, 0.06);
+      border: 0.5px solid rgba(255, 255, 255, 0.12);
+      color: var(--text-secondary);
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 30px;
+    }
+    .app-mini-btn:active { transform: scale(0.93); }
+    .app-mini-btn.pinned {
+      background: rgba(250, 204, 21, 0.16);
+      border-color: rgba(250, 204, 21, 0.5);
+      color: #FDE047;
+    }
+
+    .app-picker-footer {
+      position: sticky;
+      bottom: -20px;
+      z-index: 4;
+      background: rgba(28, 28, 30, 0.96);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border-top: 0.5px solid rgba(255, 255, 255, 0.1);
+      padding: 10px 0 4px 0;
+      margin-top: 12px;
+      display: flex;
+      gap: 8px;
     }
 
     .briefing-trigger-btn {
@@ -2037,6 +2242,9 @@
       <div class="bank-chips-row" id="bankBreakdownRow"></div>
     </section>
 
+    <!-- Active App Filter Context Bar (Hiển thị rõ App đang lọc + Xuất nhanh + Bỏ lọc 1 chạm) -->
+    <section id="activeAppBanner" class="active-app-banner"></section>
+
     <!-- Notification List Container -->
     <main id="notiListContainer" class="noti-list"></main>
   </div>
@@ -2139,6 +2347,14 @@
     <div class="modal-sheet">
       <div class="sheet-handle"></div>
       <div id="dailyBriefingContent"></div>
+    </div>
+  </div>
+
+  <!-- Modal Chọn / Tìm Nhanh Ứng dụng (Lọc 1 chạm hoặc nhiều App + Ghim ưu tiên) -->
+  <div id="appPickerModal" class="modal-backdrop" onclick="closeModalOnBackdrop(event, 'appPickerModal')">
+    <div class="modal-sheet">
+      <div class="sheet-handle"></div>
+      <div id="appPickerModalContent"></div>
     </div>
   </div>
 
@@ -2344,11 +2560,13 @@
       PIN_CODE: "notistar_ios_pin_code",
       FALLBACK_ITEMS: "notistar_ios_items_backup_v2",
       BLOCKED_APPS: "notistar_ios_blocked_apps_v1",
+      PINNED_APPS: "notistar_ios_pinned_apps_v1",
+      HIDE_SYS_APPS: "notistar_ios_hide_sys_apps_v1",
       OTA_VERSION: "notistar_ios_ota_version_code",
       CLEANED_V3: "notistar_ios_cleaned_false_revoked_v3"
     };
-    const CURRENT_OTA_VERSION_CODE = 22;
-    const CURRENT_OTA_VERSION_NAME = "10.4.1-Chronos";
+    const CURRENT_OTA_VERSION_CODE = 23;
+    const CURRENT_OTA_VERSION_NAME = "10.5.0-Chronos";
     const INITIAL_RENDER_LIMIT = 55;
 
     const IDB_NAME = "NotiStarCloud_iOS_DB";
@@ -2364,6 +2582,11 @@
     let currentBankFilter = "ALL";
     let currentDateFilter = "ALL";
     let currentAppFilter = "ALL";
+    let selectedAppFilters = [];
+    let appPickerMultiSelect = false;
+    let appPickerSearchQuery = "";
+    let hideSystemAppsInBar = localStorage.getItem("notistar_ios_hide_sys_apps_v1") !== "0";
+    let hydratedPackagesSet = new Set();
     let currentHourSlot = "ALL"; // ALL | MORNING | AFTERNOON | EVENING | NIGHT
     let onlyRevokedMedia = false;
     let currentLightboxUid = "";
@@ -3843,11 +4066,494 @@
       renderApp();
     }
 
-    function selectAppFilter(appKey) {
-      currentAppFilter = appKey || "ALL";
+    const DEFAULT_PINNED_APPS = ["APP_TELEGRAM", "APP_ZALO", "APP_MESSENGER"];
+    let cachedPinnedAppsSet = null;
+
+    function getPinnedAppsSet() {
+      if (cachedPinnedAppsSet) return cachedPinnedAppsSet;
+      try {
+        const raw = localStorage.getItem(STORAGE_KEYS.PINNED_APPS);
+        if (raw) {
+          const arr = JSON.parse(raw);
+          if (Array.isArray(arr)) {
+            cachedPinnedAppsSet = new Set(arr);
+            return cachedPinnedAppsSet;
+          }
+        }
+      } catch (e) {}
+      cachedPinnedAppsSet = new Set(DEFAULT_PINNED_APPS);
+      return cachedPinnedAppsSet;
+    }
+
+    function togglePinAppKey(appKey, event) {
+      if (event) event.stopPropagation();
+      const set = getPinnedAppsSet();
+      if (set.has(appKey)) set.delete(appKey);
+      else set.add(appKey);
+      try {
+        localStorage.setItem(STORAGE_KEYS.PINNED_APPS, JSON.stringify(Array.from(set)));
+      } catch (e) {}
+      renderAppPickerModal();
+      renderApp();
+    }
+
+    const NOISY_SYSTEM_PKG_PREFIXES = [
+      "com.android.systemui",
+      "com.android.bluetooth",
+      "com.android.providers.downloads",
+      "com.android.vending",
+      "com.google.android.gms",
+      "com.google.android.gsf",
+      "com.samsung.android.daemonapp",
+      "com.samsung.android.lool",
+      "com.samsung.android.app.smartcapture",
+      "com.samsung.android.app.routines",
+      "com.samsung.wearable.",
+      "android"
+    ];
+
+    function isNoisySystemApp(item) {
+      const pkg = String(item.packageName || "").toLowerCase().trim();
+      const name = String(item.appName || "").toLowerCase().trim();
+      if (pkg === "android") return true;
+      for (const prefix of NOISY_SYSTEM_PKG_PREFIXES) {
+        if (prefix !== "android" && pkg.startsWith(prefix)) return true;
+      }
+      if (name === "ui hệ thống" || name === "dịch vụ google play" || name === "trình quản lý tải xuống") {
+        return true;
+      }
+      return false;
+    }
+
+    const SEARCH_ALIAS_MAP = {
+      tele: ["telegram", "challegram", "nekogram", "nekox", "ayugram"],
+      tg: ["telegram", "challegram", "nekogram", "nekox", "ayugram"],
+      mess: ["com.facebook.orca", "facebook messenger", "orca"],
+      mes: ["com.facebook.orca", "facebook messenger", "orca"],
+      zl: ["zalo"],
+      fb: ["facebook", "katana"],
+      face: ["facebook", "katana"],
+      ig: ["instagram"],
+      insta: ["instagram"],
+      tt: ["tiktok", "musically"],
+      tik: ["tiktok", "musically"],
+      yt: ["youtube", "morphe", "revanced"],
+      yout: ["youtube", "morphe", "revanced"],
+      gm: ["gmail"],
+      vcb: ["vietcombank"],
+      tcb: ["techcombank"],
+      mb: ["mbbank", "mb bank"],
+      tpb: ["tpbank"],
+      vtb: ["vietinbank"]
+    };
+
+    function getAliasTermsForQuery(rawQ) {
+      const q = String(rawQ || "").trim().toLowerCase();
+      if (!q) return [];
+      const terms = [q];
+      for (const [alias, targets] of Object.entries(SEARCH_ALIAS_MAP)) {
+        if (q === alias || (q.length >= 2 && alias.startsWith(q))) {
+          for (const t of targets) terms.push(t);
+        }
+      }
+      return terms;
+    }
+
+    function matchSearchWithAliases(haystack, rawQ) {
+      const q = String(rawQ || "").trim().toLowerCase();
+      if (!q) return true;
+      if (haystack.includes(q)) return true;
+      const terms = getAliasTermsForQuery(q);
+      for (let i = 1; i < terms.length; i++) {
+        if (haystack.includes(terms[i])) return true;
+      }
+      return false;
+    }
+
+    function getAppFamilyKeyAndLabel(item) {
+      const hay = `${item.appName || ""} ${item.packageName || ""}`.toLowerCase();
+      if (hay.includes("zalo") && !hay.includes("zalopay")) {
+        return { key: "APP_ZALO", label: "Zalo", color: "#0068FF", isSystem: false, priorityChat: true };
+      }
+      if (
+        hay.includes("telegram") ||
+        hay.includes("challegram") ||
+        hay.includes("nekogram") ||
+        hay.includes("nekox") ||
+        hay.includes("ayugram")
+      ) {
+        return { key: "APP_TELEGRAM", label: "Telegram", color: "#2AABEE", isSystem: false, priorityChat: true };
+      }
+      if (hay.includes("messenger") || hay.includes("orca")) {
+        return { key: "APP_MESSENGER", label: "Messenger", color: "#0084FF", isSystem: false, priorityChat: true };
+      }
+      if (hay.includes("facebook") || hay.includes("katana")) {
+        return { key: "APP_FACEBOOK", label: "Facebook", color: "#1877F2", isSystem: false, priorityChat: false };
+      }
+      if (hay.includes("instagram")) {
+        return { key: "APP_INSTAGRAM", label: "Instagram", color: "#E1306C", isSystem: false, priorityChat: false };
+      }
+      if (hay.includes("tiktok") || hay.includes("musically")) {
+        return { key: "APP_TIKTOK", label: "TikTok", color: "#FE2C55", isSystem: false, priorityChat: false };
+      }
+      if (hay.includes("gmail") || String(item.packageName || "").toLowerCase() === "com.google.android.gm") {
+        return { key: "APP_GMAIL", label: "Gmail", color: "#EA4335", isSystem: false, priorityChat: false };
+      }
+      if (hay.includes("phone") || hay.includes("call") || hay.includes("incallui") || hay.includes("điện thoại") || hay.includes("mms") || hay.includes("sms")) {
+        return { key: "APP_PHONE_SMS", label: "ĐT & SMS", color: "#34C759", isSystem: false, priorityChat: false };
+      }
+      if (getItemMeta(item).bankTx || hay.includes("bank") || hay.includes("momo") || hay.includes("zalopay") || hay.includes("vcb")) {
+        return { key: "APP_BANK", label: "Ngân hàng", color: "#10B981", isSystem: false, priorityChat: false };
+      }
+      const rawName = (item.appName || item.packageName || "Khác").trim();
+      const sysFlag = isNoisySystemApp(item);
+      return {
+        key: `PKG_${item.packageName || rawName}`,
+        label: rawName,
+        color: sysFlag ? "#64748B" : "#6366F1",
+        isSystem: sysFlag,
+        priorityChat: false
+      };
+    }
+
+    function syncLegacyAppFilterState() {
+      if (!Array.isArray(selectedAppFilters) || selectedAppFilters.length === 0) {
+        selectedAppFilters = [];
+        currentAppFilter = "ALL";
+      } else if (selectedAppFilters.length === 1) {
+        currentAppFilter = selectedAppFilters[0];
+      } else {
+        currentAppFilter = "MULTI";
+      }
+    }
+
+    function hydrateSelectedAppsFromAndroid(appKeys) {
+      if (!IS_ANDROID_NATIVE || !window.AndroidNative || !window.AndroidNative.getConversationHistoryJson) return;
+      if (!appKeys || appKeys.length === 0) return;
+      const targetSet = new Set(appKeys);
+      const pkgsToFetch = new Set();
+      for (const n of allNotifications) {
+        if (targetSet.has(getAppFamilyKeyAndLabel(n).key) && n.packageName && !hydratedPackagesSet.has(n.packageName)) {
+          pkgsToFetch.add(n.packageName);
+        }
+      }
+      if (pkgsToFetch.size === 0) return;
+      setTimeout(async () => {
+        let added = 0;
+        for (const pkg of pkgsToFetch) {
+          hydratedPackagesSet.add(pkg);
+          try {
+            const raw = window.AndroidNative.getConversationHistoryJson(pkg, "");
+            if (raw && raw !== "[]") {
+              const parsed = JSON.parse(raw);
+              if (Array.isArray(parsed) && parsed.length > 0) {
+                added += await mergeIncomingNotifications(parsed, false);
+              }
+            }
+          } catch (e) {}
+        }
+        if (added > 0) {
+          scheduleRenderApp();
+        }
+      }, 35);
+    }
+
+    function selectAppFilter(appKey, fromModal = false) {
+      if (!appKey || appKey === "ALL") {
+        selectedAppFilters = [];
+      } else {
+        selectedAppFilters = [appKey];
+      }
+      syncLegacyAppFilterState();
+
+      // Nếu đang lọc ngày hẹp (vd: Hôm nay) mà app vừa chọn không có tin nào trong ngày đó -> tự mở sang Mọi ngày
+      if (selectedAppFilters.length > 0 && currentDateFilter !== "ALL") {
+        const hasInCurrentDate = allNotifications.some((n) => {
+          if (!selectedAppFilters.includes(getAppFamilyKeyAndLabel(n).key)) return false;
+          if (currentDateFilter === "RANGE_3D") return Number(n.time) >= Date.now() - 3 * 86400000;
+          if (currentDateFilter === "RANGE_7D") return Number(n.time) >= Date.now() - 7 * 86400000;
+          return (n.dateStr || formatDateOnly(n.time)) === currentDateFilter;
+        });
+        if (!hasInCurrentDate) {
+          currentDateFilter = "ALL";
+          showToast("📅 Đã chuyển sang Mọi ngày để hiển thị đầy đủ thông báo của App này!");
+        }
+      }
+
+      if (selectedAppFilters.length > 0) {
+        hydrateSelectedAppsFromAndroid(selectedAppFilters);
+      }
+
+      if (fromModal) {
+        closeModal("appPickerModal");
+      }
       visibleRenderLimit = INITIAL_RENDER_LIMIT;
       window.scrollTo({ top: 0, behavior: "instant" });
       renderApp();
+    }
+
+    function clearAllAppFilters() {
+      selectedAppFilters = [];
+      syncLegacyAppFilterState();
+      visibleRenderLimit = INITIAL_RENDER_LIMIT;
+      renderApp();
+    }
+
+    function buildFullAppDirectory(sourceItems = allNotifications) {
+      const blockedSet = getBlockedAppsSet();
+      const pinnedSet = getPinnedAppsSet();
+      const map = new Map();
+      for (const n of sourceItems) {
+        const pkgOrName = n.packageName || n.appName;
+        if (blockedSet.has(pkgOrName)) continue;
+        const fam = getAppFamilyKeyAndLabel(n);
+        let g = map.get(fam.key);
+        if (!g) {
+          g = {
+            key: fam.key,
+            label: fam.label,
+            color: fam.color,
+            isSystem: fam.isSystem,
+            priorityChat: fam.priorityChat,
+            isPinned: pinnedSet.has(fam.key),
+            packages: new Set(),
+            count: 0,
+            photos: 0,
+            revoked: 0,
+            lastTime: 0
+          };
+          map.set(fam.key, g);
+        }
+        if (n.packageName) g.packages.add(n.packageName);
+        g.count++;
+        if (getItemMeta(n).hasMedia) g.photos++;
+        if (n.isRevoked) g.revoked++;
+        const ts = Number(n.time) || 0;
+        if (ts > g.lastTime) g.lastTime = ts;
+      }
+
+      const arr = Array.from(map.values());
+      arr.sort((a, b) => {
+        if (a.isPinned !== b.isPinned) return a.isPinned ? -1 : 1;
+        if (a.isSystem !== b.isSystem) return a.isSystem ? 1 : -1;
+        return b.count - a.count || b.lastTime - a.lastTime;
+      });
+      return arr;
+    }
+
+    function openAppPickerModal() {
+      appPickerSearchQuery = "";
+      renderAppPickerModal();
+      openModal("appPickerModal");
+      setTimeout(() => {
+        const inp = document.getElementById("appPickerSearchInput");
+        if (inp) inp.focus();
+      }, 120);
+    }
+
+    function onAppPickerSearchInput(val) {
+      appPickerSearchQuery = String(val || "").trim().toLowerCase();
+      renderAppPickerListOnly();
+    }
+
+    function toggleAppPickerMultiMode() {
+      appPickerMultiSelect = !appPickerMultiSelect;
+      renderAppPickerModal();
+    }
+
+    function toggleHideSystemApps() {
+      hideSystemAppsInBar = !hideSystemAppsInBar;
+      try {
+        localStorage.setItem(STORAGE_KEYS.HIDE_SYS_APPS, hideSystemAppsInBar ? "1" : "0");
+      } catch (e) {}
+      renderAppPickerModal();
+      renderApp();
+    }
+
+    function toggleMultiAppChoice(appKey) {
+      const idx = selectedAppFilters.indexOf(appKey);
+      if (idx >= 0) selectedAppFilters.splice(idx, 1);
+      else selectedAppFilters.push(appKey);
+      syncLegacyAppFilterState();
+      renderAppPickerListOnly();
+      updateAppPickerFooter();
+    }
+
+    function applyMultiAppSelection() {
+      syncLegacyAppFilterState();
+      if (selectedAppFilters.length > 0 && currentDateFilter !== "ALL") {
+        const hasAny = allNotifications.some((n) => {
+          if (!selectedAppFilters.includes(getAppFamilyKeyAndLabel(n).key)) return false;
+          if (currentDateFilter === "RANGE_3D") return Number(n.time) >= Date.now() - 3 * 86400000;
+          if (currentDateFilter === "RANGE_7D") return Number(n.time) >= Date.now() - 7 * 86400000;
+          return (n.dateStr || formatDateOnly(n.time)) === currentDateFilter;
+        });
+        if (!hasAny) currentDateFilter = "ALL";
+      }
+      if (selectedAppFilters.length > 0) {
+        hydrateSelectedAppsFromAndroid(selectedAppFilters);
+      }
+      closeModal("appPickerModal");
+      visibleRenderLimit = INITIAL_RENDER_LIMIT;
+      window.scrollTo({ top: 0, behavior: "instant" });
+      renderApp();
+    }
+
+    function exportSingleAppByKey(appKey, event) {
+      if (event) event.stopPropagation();
+      const dir = buildFullAppDirectory(allNotifications);
+      const entry = dir.find((x) => x.key === appKey);
+      const items = allNotifications.filter((n) => getAppFamilyKeyAndLabel(n).key === appKey);
+      if (!items.length) {
+        showToast("⚠️ Chưa có thông báo nào cho ứng dụng này!");
+        return;
+      }
+      closeModal("appPickerModal");
+      const label = entry ? entry.label : appKey;
+      const firstPkg = entry && entry.packages.size === 1 ? Array.from(entry.packages)[0] : "";
+      openContactExportModal(firstPkg, label, label, items, `App: ${label}`);
+    }
+
+    function exportActiveAppFilters() {
+      if (selectedAppFilters.length === 0) return;
+      const dir = buildFullAppDirectory(allNotifications);
+      const selectedEntries = dir.filter((x) => selectedAppFilters.includes(x.key));
+      const labels = selectedEntries.map((x) => x.label);
+      const items = allNotifications.filter((n) => selectedAppFilters.includes(getAppFamilyKeyAndLabel(n).key));
+      if (!items.length) {
+        showToast("⚠️ Không có thông báo nào để xuất!");
+        return;
+      }
+      const title = labels.length > 0 ? labels.join(" + ") : "UngDungDaChon";
+      const firstPkg = selectedEntries.length === 1 && selectedEntries[0].packages.size === 1
+        ? Array.from(selectedEntries[0].packages)[0]
+        : "";
+      openContactExportModal(firstPkg, title, title, items, `App: ${title}`);
+    }
+
+    function getFilteredAppPickerDirectory() {
+      const full = buildFullAppDirectory(allNotifications);
+      const q = appPickerSearchQuery;
+      return full.filter((g) => {
+        if (!q && hideSystemAppsInBar && g.isSystem && !g.isPinned && !selectedAppFilters.includes(g.key)) {
+          return false;
+        }
+        if (!q) return true;
+        const pkgJoined = Array.from(g.packages).join(" ").toLowerCase();
+        const safePkg = g.key === "APP_TELEGRAM" ? pkgJoined.replace(/\.messenger\b/g, "") : pkgJoined;
+        const hay = `${g.label.toLowerCase()} ${safePkg}`;
+        return matchSearchWithAliases(hay, q);
+      });
+    }
+
+    function renderAppPickerRowsHtml() {
+      const list = getFilteredAppPickerDirectory();
+      if (list.length === 0) {
+        return `
+          <div style="text-align:center;padding:24px 12px;color:var(--text-secondary);font-size:13px;">
+            Không tìm thấy ứng dụng nào khớp với "<strong>${escapeHtml(appPickerSearchQuery)}</strong>".
+          </div>
+        `;
+      }
+      return list.map((g) => {
+        const isSel = selectedAppFilters.includes(g.key);
+        const brand = getAppBrandStyle(g.label, Array.from(g.packages)[0] || "", g.key === "APP_BANK");
+        const iconInner = brand.svg || escapeHtml(brand.label || g.label.slice(0, 1).toUpperCase());
+        const pkgHint = Array.from(g.packages).slice(0, 1)[0] || "";
+        const clickHandler = appPickerMultiSelect
+          ? `toggleMultiAppChoice('${escapeAttr(g.key)}')`
+          : `selectAppFilter('${escapeAttr(g.key)}', true)`;
+        return `
+          <div class="app-picker-row ${isSel ? "selected" : ""}">
+            <div class="app-picker-row-main" onclick="${clickHandler}">
+              <div class="app-picker-icon" style="background:${brand.bg};">${iconInner}</div>
+              <div class="app-picker-info">
+                <div class="app-picker-name">
+                  <span>${escapeHtml(g.label)}</span>
+                  ${g.isSystem ? `<span class="pill-badge" style="font-size:9.5px;padding:1px 6px;background:rgba(148,163,184,0.16);color:#94A3B8;">Hệ thống</span>` : ""}
+                </div>
+                <div class="app-picker-sub">
+                  💬 <strong>${g.count}</strong> tin${g.photos > 0 ? ` • 🖼️ ${g.photos} ảnh` : ""}${g.revoked > 0 ? ` • <span style="color:#FDA4AF;">🚫 ${g.revoked} thu hồi</span>` : ""}${pkgHint ? ` • ${escapeHtml(pkgHint)}` : ""}
+                </div>
+              </div>
+            </div>
+            <div class="app-picker-actions">
+              <button class="app-mini-btn ${g.isPinned ? "pinned" : ""}" onclick="togglePinAppKey('${escapeAttr(g.key)}', event)" title="Ghim lên thanh lọc nhanh">
+                ${g.isPinned ? "📌" : "☆"}
+              </button>
+              <button class="app-mini-btn" style="color:#7DD3FC;border-color:rgba(56,189,248,0.35);" onclick="exportSingleAppByKey('${escapeAttr(g.key)}', event)" title="Xuất toàn bộ thông báo của App này">
+                📥
+              </button>
+              ${appPickerMultiSelect ? `
+                <button class="app-mini-btn" style="${isSel ? "background:#0EA5E9;color:#FFF;border-color:#38BDF8;" : ""}" onclick="toggleMultiAppChoice('${escapeAttr(g.key)}')">
+                  ${isSel ? "✓" : "+"}
+                </button>
+              ` : ""}
+            </div>
+          </div>
+        `;
+      }).join("");
+    }
+
+    function renderAppPickerListOnly() {
+      const box = document.getElementById("appPickerListBox");
+      if (box) box.innerHTML = renderAppPickerRowsHtml();
+    }
+
+    function updateAppPickerFooter() {
+      const foot = document.getElementById("appPickerFooterBox");
+      if (!foot) return;
+      if (appPickerMultiSelect) {
+        foot.innerHTML = `
+          <button class="btn" style="flex:0 0 auto;" onclick="clearAllAppFilters(); renderAppPickerListOnly(); updateAppPickerFooter();">Bỏ chọn</button>
+          <button class="btn btn-primary" onclick="applyMultiAppSelection()">✓ Xem ${selectedAppFilters.length > 0 ? selectedAppFilters.length + " App đã chọn" : "Tất cả App"}</button>
+        `;
+      } else {
+        foot.innerHTML = `
+          ${selectedAppFilters.length > 0 ? `<button class="btn" onclick="selectAppFilter('ALL', true)">📱 Hiện tất cả App</button>` : ""}
+          <button class="btn btn-primary" onclick="closeModal('appPickerModal')">Đóng</button>
+        `;
+      }
+    }
+
+    function renderAppPickerModal() {
+      const box = document.getElementById("appPickerModalContent");
+      if (!box) return;
+      const totalDir = buildFullAppDirectory(allNotifications);
+      const sysCount = totalDir.filter((x) => x.isSystem).length;
+
+      box.innerHTML = `
+        <div class="app-picker-sticky-head">
+          <div class="sheet-title" style="margin-bottom:8px;">
+            <div>
+              <div style="font-size:16px;font-weight:800;">📱 Chọn Ứng dụng để Lọc</div>
+              <div style="font-size:11.5px;color:var(--text-secondary);">Có ${totalDir.length} ứng dụng trong kho • Hỗ trợ gõ tắt ("tele", "mess", "zl", "fb", "vcb")</div>
+            </div>
+            <button class="icon-btn" onclick="closeModal('appPickerModal')">✕</button>
+          </div>
+          <input
+            type="search"
+            id="appPickerSearchInput"
+            class="form-input"
+            placeholder="Tìm tên app (VD: Telegram, tele, Zalo, Gmail...)"
+            value="${escapeAttr(appPickerSearchQuery)}"
+            oninput="onAppPickerSearchInput(this.value)"
+          />
+          <div class="app-picker-controls">
+            <button class="date-scrubber-pill ${appPickerMultiSelect ? "active" : ""}" onclick="toggleAppPickerMultiMode()">
+              ${appPickerMultiSelect ? "☑️ Đang chọn nhiều App" : "☐ Chọn nhiều App"}
+            </button>
+            ${sysCount > 0 ? `
+              <button class="date-scrubber-pill ${!hideSystemAppsInBar ? "active" : ""}" onclick="toggleHideSystemApps()">
+                ${hideSystemAppsInBar ? `👁️ Đang ẩn ${sysCount} app hệ thống` : `👁️ Đang hiện cả app hệ thống`}
+              </button>
+            ` : ""}
+          </div>
+        </div>
+        <div id="appPickerListBox" class="app-picker-list">${renderAppPickerRowsHtml()}</div>
+        <div id="appPickerFooterBox" class="app-picker-footer"></div>
+      `;
+      updateAppPickerFooter();
     }
 
     function toggleOnlyRevokedMedia() {
@@ -3864,30 +4570,6 @@
       if (slotId === "EVENING") return hr >= 18 && hr <= 23;
       if (slotId === "NIGHT") return hr >= 0 && hr < 6;
       return true;
-    }
-
-    function getAppFamilyKeyAndLabel(item) {
-      const hay = `${item.appName || ""} ${item.packageName || ""}`.toLowerCase();
-      if (hay.includes("zalo") && !hay.includes("zalopay")) {
-        return { key: "APP_ZALO", label: "Zalo", color: "#0068FF" };
-      }
-      if (hay.includes("messenger") || hay.includes("orca")) {
-        return { key: "APP_MESSENGER", label: "Messenger", color: "#0084FF" };
-      }
-      if (hay.includes("telegram")) {
-        return { key: "APP_TELEGRAM", label: "Telegram", color: "#2AABEE" };
-      }
-      if (hay.includes("facebook") || hay.includes("katana")) {
-        return { key: "APP_FACEBOOK", label: "Facebook", color: "#1877F2" };
-      }
-      if (hay.includes("phone") || hay.includes("call") || hay.includes("incallui") || hay.includes("điện thoại") || hay.includes("mms") || hay.includes("sms")) {
-        return { key: "APP_PHONE_SMS", label: "ĐT & SMS", color: "#34C759" };
-      }
-      if (getItemMeta(item).bankTx || hay.includes("bank") || hay.includes("momo") || hay.includes("zalopay") || hay.includes("vcb")) {
-        return { key: "APP_BANK", label: "Ngân hàng", color: "#10B981" };
-      }
-      const rawName = (item.appName || item.packageName || "Khác").trim();
-      return { key: `PKG_${item.packageName || rawName}`, label: rawName, color: "#6366F1" };
     }
 
     function openDailyBriefingModal(targetDateOverride = null) {
@@ -4239,8 +4921,11 @@
         topHeaderEl.classList.toggle("manage-mode", currentTab === "manage");
       }
 
+      const activeAppBannerEl = document.getElementById("activeAppBanner");
+
       // Nếu đang ở Tab Quản lý (⚙️ Quản lý)
       if (currentTab === "manage") {
+        if (activeAppBannerEl) activeAppBannerEl.classList.remove("visible");
         container.innerHTML = renderManagementViewHtml();
         return;
       }
@@ -4355,26 +5040,70 @@
         filtered = filtered.filter((item) => matchHourSlot(item.time, currentHourSlot));
       }
 
-      // 5. Render Thanh Lọc Nhanh Theo Từng Ứng Dụng (Zalo, Messenger, Telegram...) dựa trên danh sách của ngày/tab đang chọn
+      // 5. Render Thanh Lọc Nhanh Theo Từng Ứng Dụng (Nút Chọn Đầy Đủ App + Ghim ưu tiên Tele/Zalo/Messenger)
+      const pinnedAppsSet = getPinnedAppsSet();
       const appQuickBar = document.getElementById("appQuickFilterBar");
-      if (appQuickBar) {
-        const appGroups = new Map();
-        for (const item of filtered) {
-          const fam = getAppFamilyKeyAndLabel(item);
-          let g = appGroups.get(fam.key);
-          if (!g) {
-            g = { key: fam.key, label: fam.label, color: fam.color, count: 0 };
-            appGroups.set(fam.key, g);
-          }
-          g.count++;
+      const allAppDir = buildFullAppDirectory(allNotifications);
+      const contextAppGroups = new Map();
+      for (const item of filtered) {
+        const fam = getAppFamilyKeyAndLabel(item);
+        let g = contextAppGroups.get(fam.key);
+        if (!g) {
+          g = {
+            key: fam.key,
+            label: fam.label,
+            color: fam.color,
+            isSystem: fam.isSystem,
+            isPinned: pinnedAppsSet.has(fam.key),
+            count: 0
+          };
+          contextAppGroups.set(fam.key, g);
         }
-        const sortedApps = Array.from(appGroups.values()).sort((a, b) => b.count - a.count);
+        g.count++;
+      }
+
+      if (appQuickBar) {
+        const sortedContextApps = Array.from(contextAppGroups.values()).sort((a, b) => {
+          const aSel = selectedAppFilters.includes(a.key);
+          const bSel = selectedAppFilters.includes(b.key);
+          if (aSel !== bSel) return aSel ? -1 : 1;
+          if (a.isPinned !== b.isPinned) return a.isPinned ? -1 : 1;
+          if (a.isSystem !== b.isSystem) return a.isSystem ? 1 : -1;
+          return b.count - a.count;
+        });
+
+        const visibleChipApps = [];
+        for (const ag of sortedContextApps) {
+          if (hideSystemAppsInBar && ag.isSystem && !ag.isPinned && !selectedAppFilters.includes(ag.key)) continue;
+          visibleChipApps.push(ag);
+        }
+        // Đảm bảo app đã ghim có dữ liệu trong kho vẫn luôn dễ bấm ngay cả khi tab/ngày hiện tại ít tin
+        for (const dg of allAppDir) {
+          if (dg.isPinned && !contextAppGroups.has(dg.key) && !visibleChipApps.some((x) => x.key === dg.key)) {
+            visibleChipApps.push({ ...dg, count: dg.count, fromFullArchive: true });
+          }
+        }
+
+        const pickerActiveLabel = selectedAppFilters.length > 0
+          ? `App (${selectedAppFilters.length})`
+          : `Chọn App (${allAppDir.length})`;
+
         const appChips = [];
         appChips.push(`
-          <button class="app-filter-chip ${currentAppFilter === "ALL" ? "active" : ""}" onclick="selectAppFilter('ALL')">
-            📱 Tất cả App <span class="date-scrubber-cnt">${filtered.length}</span>
+          <button class="app-picker-trigger ${selectedAppFilters.length > 0 ? "has-filter" : ""}" onclick="openAppPickerModal()" title="Mở danh sách toàn bộ ${allAppDir.length} ứng dụng & tìm nhanh">
+            <svg viewBox="0 0 24 24"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
+            <span>${escapeHtml(pickerActiveLabel)}</span>
           </button>
         `);
+
+        if (selectedAppFilters.length > 0) {
+          appChips.push(`
+            <button class="app-filter-chip" style="border-color:rgba(244,63,94,0.45);color:#FDA4AF;" onclick="clearAllAppFilters()">
+              ✕ Bỏ lọc (${filtered.length})
+            </button>
+          `);
+        }
+
         if (currentTab === "revoked") {
           appChips.push(`
             <button class="app-filter-chip ${onlyRevokedMedia ? "active" : ""}" style="border-color:rgba(244,63,94,0.45);" onclick="toggleOnlyRevokedMedia()">
@@ -4382,19 +5111,31 @@
             </button>
           `);
         }
-        for (const ag of sortedApps.slice(0, 12)) {
+
+        const maxQuickChips = 14;
+        for (const ag of visibleChipApps.slice(0, maxQuickChips)) {
+          const isSel = selectedAppFilters.includes(ag.key);
           appChips.push(`
-            <button class="app-filter-chip ${currentAppFilter === ag.key ? "active" : ""}" onclick="selectAppFilter('${escapeAttr(ag.key)}')">
+            <button class="app-filter-chip ${isSel ? "active" : ""}" onclick="selectAppFilter('${escapeAttr(ag.key)}')">
               <span class="app-chip-dot" style="background:${ag.color};"></span>
               ${escapeHtml(ag.label)} <span class="date-scrubber-cnt">${ag.count}</span>
+            </button>
+          `);
+        }
+        const remainingApps = Math.max(0, allAppDir.length - Math.min(visibleChipApps.length, maxQuickChips));
+        if (remainingApps > 0) {
+          appChips.push(`
+            <button class="app-filter-chip" style="border-color:rgba(56,189,248,0.35);color:#7DD3FC;" onclick="openAppPickerModal()">
+              +${remainingApps} App khác...
             </button>
           `);
         }
         appQuickBar.innerHTML = appChips.join("");
       }
 
-      if (currentAppFilter !== "ALL") {
-        filtered = filtered.filter((item) => getAppFamilyKeyAndLabel(item).key === currentAppFilter);
+      if (selectedAppFilters.length > 0) {
+        const selectedSet = new Set(selectedAppFilters);
+        filtered = filtered.filter((item) => selectedSet.has(getAppFamilyKeyAndLabel(item).key));
       }
 
       if (currentTab === "revoked" && onlyRevokedMedia) {
@@ -4402,8 +5143,37 @@
       }
 
       if (searchQuery) {
-        filtered = filtered.filter((item) => getItemMeta(item).haystack.includes(searchQuery));
+        filtered = filtered.filter((item) => matchSearchWithAliases(getItemMeta(item).haystack, searchQuery));
       }
+
+      // Render Banner Ngữ Cảnh khi đang lọc theo App (Cho phép Xuất App hoặc Bỏ lọc 1 chạm)
+      if (activeAppBannerEl) {
+        if (selectedAppFilters.length > 0) {
+          const chosenLabels = selectedAppFilters.map((k) => {
+            const found = allAppDir.find((x) => x.key === k);
+            return found ? found.label : k;
+          });
+          activeAppBannerEl.classList.add("visible");
+          activeAppBannerEl.innerHTML = `
+            <div class="active-app-banner-meta">
+              <span>📱 Đang lọc App: <strong style="color:#FFF;">${escapeHtml(chosenLabels.join(", "))}</strong></span>
+              <span class="pill-badge badge-cloud">${filtered.length} tin</span>
+            </div>
+            <div class="active-app-banner-actions">
+              <button class="smart-chip" style="border-color:rgba(56,189,248,0.5);color:#7DD3FC;background:rgba(14,165,233,0.16);font-weight:700;" onclick="exportActiveAppFilters()">
+                📥 Xuất toàn bộ
+              </button>
+              <button class="smart-chip" style="border-color:rgba(244,63,94,0.45);color:#FDA4AF;" onclick="clearAllAppFilters()">
+                ✕ Bỏ lọc
+              </button>
+            </div>
+          `;
+        } else {
+          activeAppBannerEl.classList.remove("visible");
+          activeAppBannerEl.innerHTML = "";
+        }
+      }
+
       currentFilteredLength = filtered.length;
       currentFilteredItemsCache = filtered;
 
@@ -4518,7 +5288,13 @@
       if (hay.includes("zalo")) {
         return { bg: "linear-gradient(145deg, #0068FF, #0052CC)", label: "Z", badgeColor: "#0068FF" };
       }
-      if (hay.includes("telegram")) {
+      if (
+        hay.includes("telegram") ||
+        hay.includes("challegram") ||
+        hay.includes("nekogram") ||
+        hay.includes("nekox") ||
+        hay.includes("ayugram")
+      ) {
         return {
           bg: "linear-gradient(145deg, #2AABEE, #229ED9)",
           svg: `<svg viewBox="0 0 24 24"><path d="M21.9 4.4 2.9 11.7c-1.3.5-1.3 1.2-.2 1.6l4.9 1.5 11.3-7.1c.5-.3 1-.1.6.2l-9.2 8.3-.3 4.8c.5 0 .7-.2 1-.5l2.4-2.3 5 3.7c.9.5 1.6.2 1.8-.9L23 5.6c.3-1.2-.5-1.8-1.1-1.2z"/></svg>`,
